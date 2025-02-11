@@ -124,4 +124,26 @@ This AI-powered route optimization system aims to enhance travel planning by off
 
 10. **Smart Collaboration for Team Travel**
     - Optimizes routes for teams traveling to shared locations, reducing individual travel time.
-    - AI aligns schedules and coordinates routes for multiple users traveling to the same destination.
+    - AI aligns schedules and coordinates routes for multiple users traveling to the same destination
+## 🚀 Project Overview  
+The project aims to develop a **Route Optimization System** that enhances efficiency in finding the most optimized routes using computational and analytical methodologies. The project was divided into two groups, each focusing on specific aspects to ensure a structured approach.  
+
+---
+
+## 📅 Work Plan & Execution  
+The project followed a structured four-day execution plan:  
+
+| **Day**  | **Group 1 Task** | **Group 2 Task** |  
+|----------|----------------|-----------------|  
+| **Day 1**  | Problem Selection & Gap Analysis | Problem Statement & Solution Approach |  
+| **Day 2**  | Technical Approach & Research | Individual Contributions & Usability |  
+| **Day 3**  | Research Compilation & Documentation | Research Compilation & Documentation |  
+| **Day 4**  | Final Review & GitHub Upload | Final Review & GitHub Upload |  
+
+📂 **Project files, including research and documentation, have been uploaded to the GitHub repository with date-based categorization.**  
+
+---
+
+## ✅ Completion Status  
+✔ **Group 1:** Task 1 – Completed  
+✔ **Group 2:** Task 2 – Completed  
