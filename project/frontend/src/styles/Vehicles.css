@@ -1,0 +1,93 @@
+.vehicles-container {
+   padding: 1.5rem 0;
+ }
+ 
+ .vehicles-header {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   margin-bottom: 2rem;
+ }
+ 
+ .vehicles-header h1 {
+   margin: 0;
+ }
+ 
+ .vehicles-grid {
+   display: grid;
+   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+   gap: 1.5rem;
+ }
+ 
+ .vehicle-card {
+   background-color: white;
+   border-radius: 0.5rem;
+   padding: 1.5rem;
+   display: flex;
+   flex-direction: column;
+   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+   transition: transform 0.3s ease;
+ }
+ 
+ .vehicle-card:hover {
+   transform: translateY(-5px);
+ }
+ 
+ .vehicle-icon {
+   width: 60px;
+   height: 60px;
+   background-color: rgba(0, 123, 255, 0.1);
+   border-radius: 50%;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   margin-bottom: 1rem;
+ }
+ 
+ .vehicle-icon i {
+   font-size: 1.75rem;
+   color: #007bff;
+ }
+ 
+ .vehicle-details {
+   flex: 1;
+   margin-bottom: 1.5rem;
+ }
+ 
+ .vehicle-details h3 {
+   margin-bottom: 1rem;
+   font-size: 1.25rem;
+ }
+ 
+ .vehicle-details p {
+   margin-bottom: 0.5rem;
+   color: #6c757d;
+ }
+ 
+ .vehicle-actions {
+   display: flex;
+   gap: 0.5rem;
+ }
+ 
+ .vehicle-actions .btn {
+   flex: 1;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+ }
+ 
+ .vehicle-actions .btn i {
+   margin-right: 0.5rem;
+ }
+ 
+ @media (max-width: 768px) {
+   .vehicles-header {
+     flex-direction: column;
+     align-items: flex-start;
+     gap: 1rem;
+   }
+   
+   .vehicles-grid {
+     grid-template-columns: 1fr;
+   }
+ }
