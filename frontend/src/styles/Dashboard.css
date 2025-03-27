@@ -1,0 +1,153 @@
+.dashboard {
+   padding: 1.5rem 0;
+ }
+ 
+ .dashboard-header {
+   margin-bottom: 2rem;
+ }
+ 
+ .dashboard-header h1 {
+   margin-bottom: 0.5rem;
+ }
+ 
+ .dashboard-header p {
+   color: #6c757d;
+   font-size: 1.1rem;
+ }
+ 
+ .dashboard-stats {
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+   gap: 1.5rem;
+   margin-bottom: 2.5rem;
+ }
+ 
+ .stat-card {
+   background-color: white;
+   border-radius: 0.5rem;
+   padding: 1.5rem;
+   display: flex;
+   align-items: center;
+   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+   transition: transform 0.3s ease;
+ }
+ 
+ .stat-card:hover {
+   transform: translateY(-5px);
+ }
+ 
+ .stat-icon {
+   width: 50px;
+   height: 50px;
+   background-color: rgba(0, 123, 255, 0.1);
+   border-radius: 50%;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   margin-right: 1rem;
+ }
+ 
+ .stat-icon i {
+   font-size: 1.5rem;
+   color: #007bff;
+ }
+ 
+ .stat-content {
+   flex: 1;
+ }
+ 
+ .stat-content h3 {
+   font-size: 1rem;
+   margin-bottom: 0.25rem;
+   color: #6c757d;
+ }
+ 
+ .stat-number {
+   font-size: 1.75rem;
+   font-weight: 700;
+   color: #333;
+   margin: 0;
+ }
+ 
+ .dashboard-actions {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 1rem;
+   margin-bottom: 2.5rem;
+ }
+ 
+ .dashboard-actions .btn {
+   display: flex;
+   align-items: center;
+ }
+ 
+ .dashboard-actions .btn i {
+   margin-right: 0.5rem;
+ }
+ 
+ .dashboard-recent {
+   background-color: white;
+   border-radius: 0.5rem;
+   padding: 1.5rem;
+   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+ }
+ 
+ .dashboard-recent h2 {
+   margin-bottom: 1.5rem;
+   font-size: 1.5rem;
+ }
+ 
+ .recent-optimizations {
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+   gap: 1.5rem;
+ }
+ 
+ .optimization-card {
+   background-color: #f8f9fa;
+   border-radius: 0.5rem;
+   padding: 1.5rem;
+   transition: transform 0.3s ease;
+ }
+ 
+ .optimization-card:hover {
+   transform: translateY(-5px);
+ }
+ 
+ .optimization-card h3 {
+   margin-bottom: 1rem;
+   font-size: 1.25rem;
+ }
+ 
+ .optimization-card p {
+   margin-bottom: 0.5rem;
+   color: #6c757d;
+ }
+ 
+ .optimization-card p i {
+   width: 20px;
+   margin-right: 0.5rem;
+   color: #007bff;
+ }
+ 
+ .optimization-card .btn {
+   margin-top: 1rem;
+ }
+ 
+ @media (max-width: 768px) {
+   .dashboard-stats {
+     grid-template-columns: 1fr;
+   }
+   
+   .dashboard-actions {
+     flex-direction: column;
+   }
+   
+   .dashboard-actions .btn {
+     width: 100%;
+   }
+   
+   .recent-optimizations {
+     grid-template-columns: 1fr;
+   }
+ }
