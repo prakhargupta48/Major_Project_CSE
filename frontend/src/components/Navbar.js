@@ -53,11 +53,11 @@ const Navbar = () => {
                   Locations
                 </Link>
               </li>
-              <li className="nav-item">
+              {/* <li className="nav-item">
                 <Link to="/optimizations" className="nav-links" onClick={() => setIsMenuOpen(false)}>
                   Optimizations
                 </Link>
-              </li>
+              </li> */}
               <li className="nav-item">
                 <button className="nav-links-btn" onClick={handleLogout}>
                   Logout

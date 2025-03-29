@@ -1,82 +1,52 @@
-.locations-container {
-   padding: 1.5rem 0;
- }
- 
- .locations-header {
-   display: flex;
-   justify-content: space-between;
-   align-items: center;
-   margin-bottom: 2rem;
- }
- 
- .locations-header h1 {
-   margin: 0;
- }
- 
- .map-wrapper {
-   margin-bottom: 2rem;
-   border-radius: 0.5rem;
-   overflow: hidden;
-   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
- }
- 
- .locations-list {
-   background-color: white;
-   border-radius: 0.5rem;
-   overflow: hidden;
-   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
- }
- 
- .locations-table {
+.map-container {
    width: 100%;
-   border-collapse: collapse;
+   height: 500px;
+   z-index: 1;
  }
  
- .locations-table th,
- .locations-table td {
-   padding: 1rem;
-   text-align: left;
-   border-bottom: 1px solid #e9ecef;
+ /* Leaflet specific styles */
+ .leaflet-container {
+   width: 100%;
+   height: 100%;
  }
  
- .locations-table th {
-   background-color: #f8f9fa;
-   font-weight: 600;
+ .leaflet-popup-content-wrapper {
+   border-radius: 0.25rem;
  }
  
- .locations-table tr:last-child td {
-   border-bottom: none;
+ .leaflet-popup-content {
+   margin: 0.75rem 1rem;
+   line-height: 1.4;
  }
  
- .locations-table tr:hover {
-   background-color: #f8f9fa;
+ .leaflet-popup-content p {
+   margin: 0.5rem 0;
  }
  
- .table-actions {
-   display: flex;
-   gap: 0.5rem;
+ .leaflet-popup-content b {
+   color: #333;
  }
  
- .table-actions .btn {
-   padding: 0.25rem 0.5rem;
+ .leaflet-popup-tip-container {
+   margin-top: -1px;
  }
  
- .table-actions .btn i {
-   font-size: 0.875rem;
+ .leaflet-control-zoom {
+   border: none !important;
+   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
  }
  
- @media (max-width: 992px) {
-   .locations-table {
-     display: block;
-     overflow-x: auto;
-     white-space: nowrap;
-   }
+ .leaflet-control-zoom a {
+   border-radius: 0.25rem !important;
+   color: #333 !important;
+ }
+ 
+ .leaflet-control-zoom-in {
+   border-bottom: 1px solid #e9ecef !important;
  }
  
  @media (max-width: 768px) {
-   .locations-header {
-     flex-direction: column;
-     align-items: flex-start;
-     gap: 1rem;
+   .map-container {
+     height: 350px;
    }
  }
