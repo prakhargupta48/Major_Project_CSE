@@ -1,64 +1,248 @@
-import React, { useEffect, useRef } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+
+import LocationSearch from './LocationSearch';
 import '../styles/Map.css';
 
-const Map = ({ locations, routes }) => {
-  const mapRef = useRef(null);
-  const mapInstanceRef = useRef(null);
+const createCustomIcon = (color, type) => {
+  return L.divIcon({
+    className: `custom-marker ${type}`,
+    html: `<div style="background-color: ${color}"><i class="fas fa-${type === 'depot' ? 'warehouse' : 'map-marker-alt'}"></i></div>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 30],
+    popupAnchor: [0, -30]
+  });
+};
 
+// Map controller component to access the map instance
+const MapController = ({ onMapReady }) => {
+  const map = useMap();
+  
   useEffect(() => {
-    // Initialize map if it doesn't exist
-    if (!mapInstanceRef.current) {
-      mapInstanceRef.current = L.map(mapRef.current).setView([0, 0], 2);
-      
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(mapInstanceRef.current);
+    if (map) {
+      onMapReady(map);
     }
+  }, [map, onMapReady]);
+  
+  return null;
+};
 
-    // Clear existing markers and routes
-    mapInstanceRef.current.eachLayer(layer => {
-      if (layer instanceof L.Marker || layer instanceof L.Polyline) {
-        mapInstanceRef.current.removeLayer(layer);
-      }
-    });
+const Map = ({ 
+  locations = [], 
+  routes = [], 
+  vehicles = [],
+  onLocationSelect, 
+  onMapClick,
+  center = [51.505, -0.09],
+  zoom = 13,
+  height = "500px"
+}) => {
+  const [mapInstance, setMapInstance] = useState(null);
+  const routeColors = [
+    '#FF5733', '#33FF57', '#3357FF', '#F033FF', '#FF33A8', 
+    '#33FFF6', '#FFB533', '#BD33FF', '#FF3333', '#33FF33'
+  ];
 
-    // Add location markers
-    if (locations && locations.length > 0) {
-      const bounds = L.latLngBounds();
+  // Get vehicle by ID
+  const getVehicleById = (vehicleId) => {
+    return vehicles.find(v => v._id === vehicleId) || { name: 'Unknown Vehicle' };
+  };
+
+  // Format distance
+  const formatDistance = (distance) => {
+    return distance ? `${(distance / 1000).toFixed(2)} km` : 'N/A';
+  };
+
+  // Format duration
+  const formatDuration = (duration) => {
+    if (!duration) return 'N/A';
+    
+    const hours = Math.floor(duration / 3600);
+    const minutes = Math.floor((duration % 3600) / 60);
+    
+    return hours > 0 
+      ? `${hours} hr ${minutes} min` 
+      : `${minutes} min`;
+  };
+
+  // Handle map click
+  const handleMapClick = (e) => {
+    if (onMapClick) {
+      const { lat, lng } = e.latlng;
+      onMapClick({ latitude: lat, longitude: lng });
+    }
+  };
+
+  return (
+    <div className="map-wrapper" style={{ height }}>
+      {onLocationSelect && (
+        <div className="map-search-container">
+          <LocationSearch 
+            onLocationSelect={onLocationSelect} 
+            map={mapInstance} 
+          />
+        </div>
+      )}
       
-      locations.forEach(location => {
-        const marker = L.marker([location.latitude, location.longitude])
-          .addTo(mapInstanceRef.current)
-          .bindPopup(`<b>${location.name}</b><br>Demand: ${location.demand || 0}`);
+      <MapContainer 
+        center={center} 
+        zoom={zoom} 
+        className="map-container" 
+        style={{ height: '100%' }}
+        whenCreated={setMapInstance}
+        onClick={handleMapClick}
+      >
+        <MapController onMapReady={setMapInstance} />
         
-        bounds.extend([location.latitude, location.longitude]);
-      });
-      
-      mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
-    }
-
-    // Add route lines
-    if (routes && routes.length > 0) {
-      const colors = ['#FF5733', '#33FF57', '#3357FF', '#F033FF', '#FF33A8', '#33FFF6'];
-      
-      routes.forEach((route, index) => {
-        const color = colors[index % colors.length];
-        const points = route.stops.map(stop => [stop.latitude, stop.longitude]);
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
         
-        L.polyline(points, { color, weight: 3 })
-          .addTo(mapInstanceRef.current)
-          .bindPopup(`<b>Route ${index + 1}</b><br>Vehicle: ${route.vehicleName}`);
-      });
-    }
+        {/* Render locations as markers */}
+        {locations.map((location) => (
+          <Marker 
+            key={location._id || `temp-${location.latitude}-${location.longitude}`}
+            position={[location.latitude, location.longitude]}
+            icon={createCustomIcon(
+              location.isDepot ? '#FF5733' : '#3357FF', 
+              location.isDepot ? 'depot' : 'location'
+            )}
+          >
+            <Popup>
+              <div className="location-popup">
+                <h3>{location.name}</h3>
+                <p>{location.address}</p>
+                <p className="coordinates">
+                  <strong>Coordinates:</strong> {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
+                </p>
+                {location.isDepot && <p className="depot-label">Depot</p>}
+                {location.demand > 0 && (
+                  <p><strong>Demand:</strong> {location.demand}</p>
+                )}
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+        
+        {/* Render routes as polylines */}
+        {routes.map((route, index) => {
+          // Skip routes without stops
+          if (!route.stops || route.stops.length < 2) return null;
+          
+          // Get coordinates for the route
+          const coordinates = route.stops.map(stop => {
+            const location = locations.find(loc => 
+              loc._id === stop.location || 
+              (typeof stop.location === 'object' && loc._id === stop.location._id)
+            );
+            return location ? [location.latitude, location.longitude] : null;
+          }).filter(Boolean);
+          
+          // Get the vehicle for this route
+          const vehicle = getVehicleById(route.vehicle);
+          
+          return (
+            <React.Fragment key={`route-${index}`}>
+              <Polyline 
+                positions={coordinates}
+                color={routeColors[index % routeColors.length]}
+                weight={4}
+                opacity={0.7}
+              >
+                <Popup>
+                  <div className="route-popup">
+                    <h3>Route for {vehicle.name}</h3>
+                    <p><strong>Distance:</strong> {formatDistance(route.distance)}</p>
+                    <p><strong>Duration:</strong> {formatDuration(route.duration)}</p>
+                    <p><strong>Stops:</strong> {route.stops.length}</p>
+                  </div>
+                </Popup>
+              </Polyline>
+              
+              {/* Add route markers with stop numbers */}
+              {route.stops.map((stop, stopIndex) => {
+                if (stopIndex === 0 || stopIndex === route.stops.length - 1) return null;
+                
+                const location = locations.find(loc => 
+                  loc._id === stop.location || 
+                  (typeof stop.location === 'object' && loc._id === stop.location._id)
+                );
+                
+                if (!location) return null;
+                
+                return (
+                  <Marker
+                    key={`route-${index}-stop-${stopIndex}`}
+                    position={[location.latitude, location.longitude]}
+                    icon={L.divIcon({
+                      className: 'route-stop-marker',
+                      html: `<div style="background-color: ${routeColors[index % routeColors.length]}">${stopIndex}</div>`,
+                      iconSize: [24, 24],
+                      iconAnchor: [12, 12]
+                    })}
+                  >
+                    <Popup>
+                      <div className="stop-popup">
+                        <h3>Stop #{stopIndex}</h3>
+                        <p><strong>Location:</strong> {location.name}</p>
+                        {stop.arrivalTime && (
+                          <p><strong>Arrival Time:</strong> {stop.arrivalTime}</p>
+                        )}
+                      </div>
+                    </Popup>
+                  </Marker>
+                );
+              })}
+            </React.Fragment>
+          );
+        })}
 
-    return () => {
-      // No cleanup needed as we're reusing the map instance
-    };
-  }, [locations, routes]);
+        {/* Add vehicle markers at the start of each route */}
+        {routes.map((route, index) => {
+          if (!route.stops || route.stops.length < 2) return null;
 
-  return <div ref={mapRef} className="map-container" />;
+          const firstStop = route.stops[0];
+          const location = locations.find(loc =>
+            loc._id === firstStop.location ||
+            (typeof firstStop.location === 'object' && loc._id === firstStop.location._id)
+          );
+
+          if (!location) return null;
+
+          const vehicle = getVehicleById(route.vehicle);
+
+          return (
+            <Marker
+              key={`vehicle-${index}`}
+              position={[location.latitude, location.longitude]}
+              icon={L.divIcon({
+                className: 'vehicle-marker',
+                html: `<div style="background-color: ${routeColors[index % routeColors.length]}; padding: 4px 6px; border-radius: 6px; color: white; display: flex; align-items: center; gap: 4px;">
+                         <i class="fas fa-truck"></i>
+                         <span class="vehicle-name">${vehicle.name}</span>
+                       </div>`,
+                iconSize: [80, 40],
+                iconAnchor: [40, 20]
+              })}
+            >
+              <Popup>
+                <div className="vehicle-popup">
+                  <h3>{vehicle.name}</h3>
+                  <p><strong>Starting from:</strong> {location.name}</p>
+                  <p><strong>Route Distance:</strong> {formatDistance(route.distance)}</p>
+                  <p><strong>Route Duration:</strong> {formatDuration(route.duration)}</p>
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
+      </MapContainer>
+    </div>
+  );
 };
 
 export default Map;

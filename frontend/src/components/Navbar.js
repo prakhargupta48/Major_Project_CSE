@@ -1,12 +1,28 @@
-import React, { useContext, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { FaTruck, FaSignOutAlt, FaUser, FaBars, FaTimes } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Navbar.css';
 
 const Navbar = () => {
-  const { currentUser, logout } = useContext(AuthContext);
+  const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -14,71 +30,72 @@ const Navbar = () => {
   };
 
   const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+    setIsOpen(!isOpen);
+  };
+
+  const closeMenu = () => {
+    setIsOpen(false);
   };
 
   return (
-    <nav className="navbar">
-      <div className="navbar-container">
-        <Link to="/" className="navbar-logo">
-          <i className="fas fa-route"></i>
-          RouteOptimizer
+    <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
+      <div className="container">
+        <Link to="/dashboard" className="navbar-brand">
+          <FaTruck className="brand-icon" />
+          <span className="brand-text">RouteOptimizer</span>
         </Link>
 
-        <div className="menu-icon" onClick={toggleMenu}>
-          <i className={isMenuOpen ? 'fas fa-times' : 'fas fa-bars'} />
+        <div className="navbar-mobile-toggle" onClick={toggleMenu}>
+          {isOpen ? <FaTimes /> : <FaBars />}
         </div>
 
-        <ul className={isMenuOpen ? 'nav-menu active' : 'nav-menu'}>
-          <li className="nav-item">
-            <Link to="/" className="nav-links" onClick={() => setIsMenuOpen(false)}>
-              Home
+        <div className={`navbar-menu ${isOpen ? 'open' : ''}`}>
+          <div className="navbar-links">
+            <Link 
+              to="/dashboard" 
+              className={`navbar-link ${location.pathname === '/dashboard' ? 'active' : ''}`}
+              onClick={closeMenu}
+            >
+              Dashboard
             </Link>
-          </li>
+            <Link 
+              to="/vehicles" 
+              className={`navbar-link ${location.pathname.startsWith('/vehicles') ? 'active' : ''}`}
+              onClick={closeMenu}
+            >
+              Vehicles
+            </Link>
+            <Link 
+              to="/locations" 
+              className={`navbar-link ${location.pathname.startsWith('/locations') ? 'active' : ''}`}
+              onClick={closeMenu}
+            >
+              Locations
+            </Link>
+            <Link 
+              to="/optimizations" 
+              className={`navbar-link ${location.pathname.startsWith('/optimizations') ? 'active' : ''}`}
+              onClick={closeMenu}
+            >
+              Optimizations
+            </Link>
+          </div>
 
-          {currentUser ? (
-            <>
-              <li className="nav-item">
-                <Link to="/dashboard" className="nav-links" onClick={() => setIsMenuOpen(false)}>
-                  Dashboard
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link to="/vehicles" className="nav-links" onClick={() => setIsMenuOpen(false)}>
-                  Vehicles
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link to="/locations" className="nav-links" onClick={() => setIsMenuOpen(false)}>
-                  Locations
-                </Link>
-              </li>
-              {/* <li className="nav-item">
-                <Link to="/optimizations" className="nav-links" onClick={() => setIsMenuOpen(false)}>
-                  Optimizations
-                </Link>
-              </li> */}
-              <li className="nav-item">
-                <button className="nav-links-btn" onClick={handleLogout}>
-                  Logout
+          <div className="navbar-user">
+            {currentUser && (
+              <>
+                <div className="user-info">
+                  <FaUser className="user-icon" />
+                  <span className="user-name">{currentUser.name}</span>
+                </div>
+                <button className="logout-button" onClick={handleLogout}>
+                  <FaSignOutAlt />
+                  <span className="logout-text">Logout</span>
                 </button>
-              </li>
-            </>
-          ) : (
-            <>
-              <li className="nav-item">
-                <Link to="/login" className="nav-links" onClick={() => setIsMenuOpen(false)}>
-                  Login
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link to="/register" className="nav-links" onClick={() => setIsMenuOpen(false)}>
-                  Register
-                </Link>
-              </li>
-            </>
-          )}
-        </ul>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </nav>
   );

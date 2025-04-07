@@ -1,32 +1,68 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
+import { 
+  FaTruck, FaMapMarkerAlt, FaRoute, FaPlus, 
+  FaChartLine, FaCalendarAlt, FaClock, FaRoad 
+} from 'react-icons/fa';
 import VehicleService from '../services/vehicle.service';
 import LocationService from '../services/location.service';
 import OptimizationService from '../services/optimization.service';
+import Map from '../components/Map';
 import '../styles/Dashboard.css';
 
 const Dashboard = () => {
-  const { currentUser } = useContext(AuthContext);
   const [vehicles, setVehicles] = useState([]);
   const [locations, setLocations] = useState([]);
   const [optimizations, setOptimizations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [stats, setStats] = useState({
+    totalVehicles: 0,
+    totalLocations: 0,
+    totalOptimizations: 0,
+    totalDistance: 0
+  });
+  const [selectedOptimization, setSelectedOptimization] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [vehiclesRes, locationsRes, optimizationsRes] = await Promise.all([
-          VehicleService.getAll(),
-          LocationService.getAll(),
-          OptimizationService.getAll()
-        ]);
-
-        setVehicles(vehiclesRes.data);
-        setLocations(locationsRes.data);
-        setOptimizations(optimizationsRes.data);
+        
+        // Fetch vehicles
+        const vehiclesData = await VehicleService.getAll();
+        setVehicles(vehiclesData);
+        
+        // Fetch locations
+        const locationsData = await LocationService.getAll();
+        setLocations(locationsData);
+        
+        // Fetch optimizations
+        const optimizationsData = await OptimizationService.getAll();
+        setOptimizations(optimizationsData);
+        
+        // Calculate stats
+        const totalDistance = optimizationsData.reduce(
+          (sum, opt) => sum + (opt.totalDistance || 0), 
+          0
+        );
+        
+        setStats({
+          totalVehicles: vehiclesData.length,
+          totalLocations: locationsData.length,
+          totalOptimizations: optimizationsData.length,
+          totalDistance
+        });
+        
+        // Set the most recent optimization as selected
+        if (optimizationsData.length > 0) {
+          const mostRecent = [...optimizationsData].sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          )[0];
+          setSelectedOptimization(mostRecent);
+        }
+        
+        setError('');
       } catch (err) {
         setError('Failed to load dashboard data');
         console.error(err);
@@ -34,90 +70,288 @@ const Dashboard = () => {
         setLoading(false);
       }
     };
-
+    
     fetchData();
   }, []);
 
-  if (loading) {
-    return <div className="loading">Loading...</div>;
-  }
+  // Format date
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+  // Format distance
+  const formatDistance = (distance) => {
+    if (!distance) return '0 km';
+    return `${(distance / 1000).toFixed(2)} km`;
+  };
+
+  // Get optimization locations
+  const getOptimizationLocations = () => {
+    if (!selectedOptimization) return [];
+    
+    return selectedOptimization.locations.map(locId => {
+      // Handle both string IDs and object references
+      const id = typeof locId === 'object' ? locId._id : locId;
+      return locations.find(loc => loc._id === id);
+    }).filter(Boolean);
+  };
+
+  // Get optimization vehicles
+  const getOptimizationVehicles = () => {
+    if (!selectedOptimization) return [];
+    
+    return selectedOptimization.vehicles.map(vehId => {
+      // Handle both string IDs and object references
+      const id = typeof vehId === 'object' ? vehId._id : vehId;
+      return vehicles.find(veh => veh._id === id);
+    }).filter(Boolean);
+  };
 
   return (
     <div className="dashboard">
-      <div className="dashboard-header">
-        <h1>Dashboard</h1>
-        <p>Welcome, {currentUser?.name}!</p>
-      </div>
-
-      {error && <div className="alert alert-danger">{error}</div>}
-
-      <div className="dashboard-stats">
-        <div className="stat-card">
-          <div className="stat-icon">
-            <i className="fas fa-truck"></i>
+      <div className="container">
+        {loading ? (
+          <div className="loading-container">
+            <div className="spinner-large"></div>
+            <p>Loading dashboard data...</p>
           </div>
-          <div className="stat-content">
-            <h3>Vehicles</h3>
-            <p className="stat-number">{vehicles.length}</p>
+        ) : error ? (
+          <div className="error-container">
+            <div className="error-icon">!</div>
+            <p>{error}</p>
+            <button 
+              className="btn btn-primary" 
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </button>
           </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">
-            <i className="fas fa-map-marker-alt"></i>
-          </div>
-          <div className="stat-content">
-            <h3>Locations</h3>
-            <p className="stat-number">{locations.length}</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">
-            <i className="fas fa-route"></i>
-          </div>
-          <div className="stat-content">
-            <h3>Optimizations</h3>
-            <p className="stat-number">{optimizations.length}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="dashboard-actions">
-        <Link to="/vehicles/add" className="btn btn-primary">
-          <i className="fas fa-plus"></i> Add Vehicle
-        </Link>
-        <Link to="/locations/add" className="btn btn-primary">
-          <i className="fas fa-plus"></i> Add Location
-        </Link>
-        <Link to="/optimizations/new" className="btn btn-success">
-          <i className="fas fa-route"></i> New Optimization
-        </Link>
-      </div>
-
-      <div className="dashboard-recent">
-        <h2>Recent Optimizations</h2>
-        {optimizations.length === 0 ? (
-          <p>No optimizations yet. Create your first optimization!</p>
         ) : (
-          <div className="recent-optimizations">
-            {optimizations.slice(0, 3).map(optimization => (
-              <div key={optimization._id} className="optimization-card">
-                <h3>{optimization.name}</h3>
-                <p>
-                  <i className="fas fa-calendar"></i>{' '}
-                  {new Date(optimization.date).toLocaleDateString()}
-                </p>
-                <p>
-                  <i className="fas fa-route"></i> Routes: {optimization.routes.length}
-                </p>
-                <p>
-                  <i className="fas fa-road"></i> Total Distance: {optimization.totalDistance.toFixed(2)} km
-                </p>
-                <Link to={`/optimizations/${optimization._id}`} className="btn btn-secondary btn-sm">
-                  View Details
+          <>
+            <div className="dashboard-header">
+              <div className="dashboard-title">
+                <h1>Dashboard</h1>
+                <p>Welcome back! Here's an overview of your route optimization data.</p>
+              </div>
+              <div className="dashboard-actions">
+                <Link to="/optimizations/new" className="btn btn-primary">
+                  <FaPlus /> New Optimization
                 </Link>
               </div>
-            ))}
-          </div>
+            </div>
+            
+            <div className="dashboard-stats">
+              <div className="stat-card" data-aos="fade-up">
+                <div className="stat-icon">
+                  <FaTruck />
+                </div>
+                <div className="stat-content">
+                  <h3>Vehicles</h3>
+                  <p className="stat-number">{stats.totalVehicles}</p>
+                  <Link to="/vehicles" className="stat-link">View all</Link>
+                </div>
+              </div>
+              
+              <div className="stat-card" data-aos="fade-up" data-aos-delay="100">
+                <div className="stat-icon">
+                  <FaMapMarkerAlt />
+                </div>
+                <div className="stat-content">
+                  <h3>Locations</h3>
+                  <p className="stat-number">{stats.totalLocations}</p>
+                  <Link to="/locations" className="stat-link">View all</Link>
+                </div>
+              </div>
+              
+              <div className="stat-card" data-aos="fade-up" data-aos-delay="200">
+                <div className="stat-icon">
+                  <FaRoute />
+                </div>
+                <div className="stat-content">
+                  <h3>Optimizations</h3>
+                  <p className="stat-number">{stats.totalOptimizations}</p>
+                  <Link to="/optimizations" className="stat-link">View all</Link>
+                </div>
+              </div>
+              
+              <div className="stat-card" data-aos="fade-up" data-aos-delay="300">
+                <div className="stat-icon">
+                  <FaRoad />
+                </div>
+                <div className="stat-content">
+                  <h3>Total Distance</h3>
+                  <p className="stat-number">{formatDistance(stats.totalDistance)}</p>
+                </div>
+              </div>
+            </div>
+            
+            {selectedOptimization ? (
+              <div className="dashboard-recent" data-aos="fade-up">
+                <div className="recent-header">
+                  <h2>Latest Optimization</h2>
+                  <Link to={`/optimizations/${selectedOptimization._id}`} className="btn btn-outline">
+                    View Details
+                  </Link>
+                </div>
+                
+                <div className="recent-content">
+                  <div className="recent-info">
+                    <div className="recent-info-item">
+                      <FaCalendarAlt />
+                      <span>Created: {formatDate(selectedOptimization.createdAt)}</span>
+                    </div>
+                    <div className="recent-info-item">
+                      <FaRoad />
+                      <span>Total Distance: {formatDistance(selectedOptimization.totalDistance)}</span>
+                    </div>
+                    <div className="recent-info-item">
+                      <FaClock />
+                      <span>Duration: {selectedOptimization.totalDuration ? `${Math.floor(selectedOptimization.totalDuration / 60)} min` : 'N/A'}</span>
+                    </div>
+                    <div className="recent-info-item">
+                      <FaTruck />
+                      <span>Vehicles: {selectedOptimization.vehicles.length}</span>
+                    </div>
+                    <div className="recent-info-item">
+                      <FaMapMarkerAlt />
+                      <span>Locations: {selectedOptimization.locations.length}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="recent-map">
+                    <Map 
+                      locations={getOptimizationLocations()}
+                      routes={selectedOptimization.routes || []}
+                      vehicles={getOptimizationVehicles()}
+                      height="400px"
+                    />
+                  </div>
+                  
+                  <div className="recent-routes">
+                    <h3>Route Summary</h3>
+                    <div className="routes-grid">
+                      {selectedOptimization.routes && selectedOptimization.routes.map((route, index) => {
+                        const vehicle = vehicles.find(v => v._id === route.vehicle) || { name: 'Unknown Vehicle' };
+                        
+                        return (
+                          <div className="route-card" key={index}>
+                            <div className="route-header">
+                              <div className="route-color" style={{ backgroundColor: ['#FF5733', '#33FF57', '#3357FF', '#F033FF', '#FF33A8'][index % 5] }}></div>
+                              <h4>{vehicle.name}</h4>
+                            </div>
+                            <div className="route-details">
+                              <div className="route-detail">
+                                <span>Stops:</span>
+                                <strong>{route.stops ? route.stops.length : 0}</strong>
+                              </div>
+                              <div className="route-detail">
+                                <span>Distance:</span>
+                                <strong>{formatDistance(route.distance)}</strong>
+                              </div>
+                              <div className="route-detail">
+                                <span>Duration:</span>
+                                <strong>{route.duration ? `${Math.floor(route.duration / 60)} min` : 'N/A'}</strong>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) :  (
+              <div className="no-optimizations" data-aos="fade-up">
+                <div className="no-data-icon">
+                  <FaRoute />
+                </div>
+                <h2>No Optimizations Yet</h2>
+                <p>Create your first route optimization to see results here.</p>
+                <Link to="/optimizations/new" className="btn btn-primary">
+                  Create Optimization
+                </Link>
+              </div>
+            )}
+            
+            <div className="dashboard-sections">
+              <div className="dashboard-section" data-aos="fade-up">
+                <div className="section-header">
+                  <h2>Recent Vehicles</h2>
+                  <Link to="/vehicles" className="btn btn-text">View All</Link>
+                </div>
+                
+                <div className="section-content">
+                  {vehicles.length === 0 ? (
+                    <div className="no-data">
+                      <p>No vehicles added yet</p>
+                      <Link to="/vehicles/new" className="btn btn-outline-sm">
+                        Add Vehicle
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="vehicles-grid">
+                      {vehicles.slice(0, 3).map(vehicle => (
+                        <div className="vehicle-card" key={vehicle._id}>
+                          <div className="vehicle-icon">
+                            <FaTruck />
+                          </div>
+                          <div className="vehicle-details">
+                            <h3>{vehicle.name}</h3>
+                            <p>Capacity: {vehicle.capacity}</p>
+                            <p>Max Distance: {formatDistance(vehicle.maxDistance)}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="dashboard-section" data-aos="fade-up" data-aos-delay="100">
+                <div className="section-header">
+                  <h2>Recent Locations</h2>
+                  <Link to="/locations" className="btn btn-text">View All</Link>
+                </div>
+                
+                <div className="section-content">
+                  {locations.length === 0 ? (
+                    <div className="no-data">
+                      <p>No locations added yet</p>
+                      <Link to="/locations/new" className="btn btn-outline-sm">
+                        Add Location
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="locations-table">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Name</th>
+                            <th>Address</th>
+                            <th>Type</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {locations.slice(0, 5).map(location => (
+                            <tr key={location._id}>
+                              <td>{location.name}</td>
+                              <td>{location.address}</td>
+                              <td>
+                                <span className={`location-type ${location.isDepot ? 'depot' : 'destination'}`}>
+                                  {location.isDepot ? 'Depot' : 'Destination'}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>
