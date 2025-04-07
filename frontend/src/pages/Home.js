@@ -149,8 +149,8 @@ const Home = () => {
             <div className="testimonial-author">
               <div className="testimonial-avatar">JD</div>
               <div className="testimonial-info">
-                <h4>John Doe</h4>
-                <p>Logistics Manager, XYZ Deliveries</p>
+                <h4>Er. Devraj Parmar</h4>
+                <p>Logistics Manager, Dev_Logisticis Deliveries</p>
               </div>
             </div>
           </div>
@@ -162,8 +162,8 @@ const Home = () => {
             <div className="testimonial-author">
               <div className="testimonial-avatar">JS</div>
               <div className="testimonial-info">
-                <h4>Jane Smith</h4>
-                <p>Operations Director, ABC Logistics</p>
+                <h4>Mr. Neerav Modii</h4>
+                <p>Operations Director, Adani Logistics</p>
               </div>
             </div>
           </div>
