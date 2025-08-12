@@ -16,7 +16,7 @@ const Vehicles = () => {
     try {
       setLoading(true);
       const response = await VehicleService.getAll();
-      setVehicles(response.data);
+      setVehicles(response || []);
       setError('');
     } catch (err) {
       setError('Failed to load vehicles');
@@ -73,7 +73,7 @@ const Vehicles = () => {
         </div>
       ) : (
         <div className="vehicles-grid">
-          {vehicles.map(vehicle => (
+          {vehicles && vehicles.map(vehicle => (
             <div key={vehicle._id} className="vehicle-card">
               <div className="vehicle-icon">
                 <i className="fas fa-truck"></i>

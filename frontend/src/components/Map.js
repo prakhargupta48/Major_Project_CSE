@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -103,7 +103,7 @@ const Map = ({
         />
         
         {/* Render locations as markers */}
-        {locations.map((location) => (
+        {locations && locations.map((location) => (
           <Marker 
             key={location._id || `temp-${location.latitude}-${location.longitude}`}
             position={[location.latitude, location.longitude]}
@@ -129,16 +129,15 @@ const Map = ({
         ))}
         
         {/* Render routes as polylines */}
-        {routes.map((route, index) => {
+        {routes && routes.map((route, index) => {
           // Skip routes without stops
           if (!route.stops || route.stops.length < 2) return null;
           
           // Get coordinates for the route
           const coordinates = route.stops.map(stop => {
-            const location = locations.find(loc => 
-              loc._id === stop.location || 
-              (typeof stop.location === 'object' && loc._id === stop.location._id)
-            );
+            // Handle both locationId and location references
+            const locationId = stop.locationId || (typeof stop.location === 'object' ? stop.location._id : stop.location);
+            const location = locations.find(loc => loc._id === locationId);
             return location ? [location.latitude, location.longitude] : null;
           }).filter(Boolean);
           
@@ -167,10 +166,8 @@ const Map = ({
               {route.stops.map((stop, stopIndex) => {
                 if (stopIndex === 0 || stopIndex === route.stops.length - 1) return null;
                 
-                const location = locations.find(loc => 
-                  loc._id === stop.location || 
-                  (typeof stop.location === 'object' && loc._id === stop.location._id)
-                );
+                const locationId = stop.locationId || (typeof stop.location === 'object' ? stop.location._id : stop.location);
+                const location = locations.find(loc => loc._id === locationId);
                 
                 if (!location) return null;
                 
@@ -202,14 +199,12 @@ const Map = ({
         })}
 
         {/* Add vehicle markers at the start of each route */}
-        {routes.map((route, index) => {
+        {routes && routes.map((route, index) => {
           if (!route.stops || route.stops.length < 2) return null;
 
           const firstStop = route.stops[0];
-          const location = locations.find(loc =>
-            loc._id === firstStop.location ||
-            (typeof firstStop.location === 'object' && loc._id === firstStop.location._id)
-          );
+          const locationId = firstStop.locationId || (typeof firstStop.location === 'object' ? firstStop.location._id : firstStop.location);
+          const location = locations.find(loc => loc._id === locationId);
 
           if (!location) return null;
 

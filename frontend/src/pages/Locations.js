@@ -17,7 +17,7 @@ const Locations = () => {
     try {
       setLoading(true);
       const response = await LocationService.getAll();
-      setLocations(response.data);
+      setLocations(response || []);
       setError('');
     } catch (err) {
       setError('Failed to load locations');
@@ -71,6 +71,7 @@ const Locations = () => {
             <thead>
               <tr>
                 <th>Name</th>
+                <th>Address</th>
                 <th>Latitude</th>
                 <th>Longitude</th>
                 <th>Demand</th>
@@ -79,9 +80,10 @@ const Locations = () => {
               </tr>
             </thead>
             <tbody>
-              {locations.map(location => (
+              {locations && locations.map(location => (
                 <tr key={location._id}>
                   <td>{location.name}</td>
+                  <td>{location.address || 'N/A'}</td>
                   <td>{location.latitude.toFixed(6)}</td>
                   <td>{location.longitude.toFixed(6)}</td>
                   <td>{location.demand || 0}</td>

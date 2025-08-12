@@ -30,8 +30,8 @@ const NewOptimization = () => {
         LocationService.getAll()
       ]);
 
-      setVehicles(vehiclesRes.data);
-      setLocations(locationsRes.data);
+      setVehicles(vehiclesRes || []);
+      setLocations(locationsRes || []);
     } catch (err) {
       setError('Failed to load data');
       console.error(err);
@@ -91,8 +91,8 @@ const NewOptimization = () => {
         locationIds: selectedLocations
       };
       
-      const response = await OptimizationService.create(optimizationData);
-      navigate(`/optimizations/${response.data._id}`);
+             const response = await OptimizationService.create(optimizationData);
+       navigate(`/optimizations/${response._id}`);
     } catch (err) {
       setError('Optimization failed. Please try again.');
       console.error(err);
@@ -142,7 +142,7 @@ const NewOptimization = () => {
               </div>
             ) : (
               <div className="vehicles-grid">
-                {vehicles.map(vehicle => (
+                {vehicles && vehicles.map(vehicle => (
                   <div
                     key={vehicle._id}
                     className={`vehicle-card ${selectedVehicles.includes(vehicle._id) ? 'selected' : ''}`}
@@ -207,7 +207,7 @@ const NewOptimization = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {locations.map(location => (
+                      {locations && locations.map(location => (
                         <tr
                           key={location._id}
                           className={selectedLocations.includes(location._id) ? 'selected' : ''}
@@ -254,7 +254,7 @@ const NewOptimization = () => {
               <div className="summary-section">
                 <h3>Selected Vehicles ({selectedVehicles.length})</h3>
                 <ul>
-                  {vehicles
+                  {vehicles && vehicles
                     .filter(v => selectedVehicles.includes(v._id))
                     .map(vehicle => (
                       <li key={vehicle._id}>
@@ -267,7 +267,7 @@ const NewOptimization = () => {
               <div className="summary-section">
                 <h3>Selected Locations ({selectedLocations.length})</h3>
                 <ul>
-                  {locations
+                  {locations && locations
                     .filter(l => selectedLocations.includes(l._id))
                     .map(location => (
                       <li key={location._id}>

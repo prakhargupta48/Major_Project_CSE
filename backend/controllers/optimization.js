@@ -5,7 +5,10 @@ const Location = require('../models/Location');
 // Get all optimizations
 exports.getOptimizations = async (req, res) => {
   try {
-    const optimizations = await Optimization.find({ user: req.user.id }).sort({ date: -1 });
+    const optimizations = await Optimization.find({ user: req.user.id })
+      .populate('vehicles')
+      .populate('locations')
+      .sort({ date: -1 });
     res.json(optimizations);
   } catch (err) {
     console.error(err.message);
@@ -16,7 +19,9 @@ exports.getOptimizations = async (req, res) => {
 // Get optimization by ID
 exports.getOptimizationById = async (req, res) => {
   try {
-    const optimization = await Optimization.findById(req.params.id);
+    const optimization = await Optimization.findById(req.params.id)
+      .populate('vehicles')
+      .populate('locations');
     
     // Check if optimization exists
     if (!optimization) {
@@ -64,21 +69,32 @@ exports.createOptimization = async (req, res) => {
     // Run optimization algorithm (Clarke-Wright savings algorithm)
     const routes = clarkeWrightAlgorithm(vehicles, locations, depot);
     
-    // Calculate total distance
+    // Calculate total distance and duration
     let totalDistance = 0;
+    let totalDuration = 0;
     routes.forEach(route => {
-      totalDistance += route.totalDistance;
+      totalDistance += route.distance || 0;
+      totalDuration += route.duration || 0;
     });
     
     const newOptimization = new Optimization({
       name,
+      vehicles: vehicleIds,
+      locations: locationIds,
       routes,
       totalDistance,
+      totalDuration,
       user: req.user.id
     });
     
     const optimization = await newOptimization.save();
-    res.json(optimization);
+    
+    // Populate the response
+    const populatedOptimization = await Optimization.findById(optimization._id)
+      .populate('vehicles')
+      .populate('locations');
+    
+    res.json(populatedOptimization);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
@@ -177,8 +193,11 @@ function clarkeWrightAlgorithm(vehicles, locations, depot) {
     // Skip if location demand exceeds vehicle capacity
     if (location.demand > vehicle.remainingCapacity) return;
     
+    const routeDistance = distances[depot._id][location._id] * 2;
+    const routeDuration = Math.floor(routeDistance * 2); // Rough estimate: 2 minutes per km
+    
     const route = {
-      vehicleId: vehicle._id,
+      vehicle: vehicle._id,
       vehicleName: vehicle.name,
       stops: [
         {
@@ -206,7 +225,8 @@ function clarkeWrightAlgorithm(vehicles, locations, depot) {
           order: 2
         }
       ],
-      totalDistance: distances[depot._id][location._id] * 2,
+      distance: routeDistance,
+      duration: routeDuration,
       totalCapacity: location.demand
     };
     
@@ -250,7 +270,7 @@ function clarkeWrightAlgorithm(vehicles, locations, depot) {
     // Check if routes can be merged (capacity constraint)
     const totalDemand = route1.route.totalCapacity + route2.route.totalCapacity;
     const vehicle = availableVehicles.find(v => 
-      v._id.toString() === route1.route.vehicleId.toString()
+      v._id.toString() === route1.route.vehicle.toString()
     );
     
     if (!vehicle || totalDemand > vehicle.capacity) return;
@@ -287,20 +307,22 @@ function clarkeWrightAlgorithm(vehicles, locations, depot) {
       order: order
     });
     
-    // Calculate new total distance
+    // Calculate new total distance and duration
     let totalDistance = 0;
     for (let i = 0; i < newStops.length - 1; i++) {
       const from = newStops[i];
       const to = newStops[i + 1];
       totalDistance += distances[from.locationId][to.locationId];
     }
+    const totalDuration = Math.floor(totalDistance * 2); // Rough estimate: 2 minutes per km
     
     // Create merged route
     const mergedRoute = {
-      vehicleId: route1.route.vehicleId,
+      vehicle: route1.route.vehicle,
       vehicleName: route1.route.vehicleName,
       stops: newStops,
-      totalDistance,
+      distance: totalDistance,
+      duration: totalDuration,
       totalCapacity: totalDemand
     };
     

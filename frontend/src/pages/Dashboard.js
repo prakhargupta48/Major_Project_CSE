@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   FaTruck, FaMapMarkerAlt, FaRoute, FaPlus, 
-  FaChartLine, FaCalendarAlt, FaClock, FaRoad 
+  FaCalendarAlt, FaClock, FaRoad 
 } from 'react-icons/fa';
 import VehicleService from '../services/vehicle.service';
 import LocationService from '../services/location.service';
@@ -57,15 +57,15 @@ const Dashboard = () => {
         // Set the most recent optimization as selected
         if (optimizationsData.length > 0) {
           const mostRecent = [...optimizationsData].sort(
-            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+            (a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
           )[0];
           setSelectedOptimization(mostRecent);
         }
         
         setError('');
       } catch (err) {
-        setError('Failed to load dashboard data');
-        console.error(err);
+        console.error('Dashboard fetch error:', err);
+        setError('Failed to load dashboard data. Please check your connection and try again.');
       } finally {
         setLoading(false);
       }
@@ -76,6 +76,7 @@ const Dashboard = () => {
 
   // Format date
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
@@ -90,22 +91,30 @@ const Dashboard = () => {
   const getOptimizationLocations = () => {
     if (!selectedOptimization) return [];
     
-    return selectedOptimization.locations.map(locId => {
-      // Handle both string IDs and object references
-      const id = typeof locId === 'object' ? locId._id : locId;
-      return locations.find(loc => loc._id === id);
-    }).filter(Boolean);
+    if (selectedOptimization.locations && Array.isArray(selectedOptimization.locations)) {
+      return selectedOptimization.locations.map(loc => {
+        // Handle both string IDs and object references
+        const id = typeof loc === 'object' ? loc._id : loc;
+        return locations.find(location => location._id === id);
+      }).filter(Boolean);
+    }
+    
+    return [];
   };
 
   // Get optimization vehicles
   const getOptimizationVehicles = () => {
     if (!selectedOptimization) return [];
     
-    return selectedOptimization.vehicles.map(vehId => {
-      // Handle both string IDs and object references
-      const id = typeof vehId === 'object' ? vehId._id : vehId;
-      return vehicles.find(veh => veh._id === id);
-    }).filter(Boolean);
+    if (selectedOptimization.vehicles && Array.isArray(selectedOptimization.vehicles)) {
+      return selectedOptimization.vehicles.map(veh => {
+        // Handle both string IDs and object references
+        const id = typeof veh === 'object' ? veh._id : veh;
+        return vehicles.find(vehicle => vehicle._id === id);
+      }).filter(Boolean);
+    }
+    
+    return [];
   };
 
   return (
@@ -199,7 +208,7 @@ const Dashboard = () => {
                   <div className="recent-info">
                     <div className="recent-info-item">
                       <FaCalendarAlt />
-                      <span>Created: {formatDate(selectedOptimization.createdAt)}</span>
+                      <span>Created: {formatDate(selectedOptimization.createdAt || selectedOptimization.date)}</span>
                     </div>
                     <div className="recent-info-item">
                       <FaRoad />
@@ -211,11 +220,11 @@ const Dashboard = () => {
                     </div>
                     <div className="recent-info-item">
                       <FaTruck />
-                      <span>Vehicles: {selectedOptimization.vehicles.length}</span>
+                      <span>Vehicles: {selectedOptimization.vehicles ? selectedOptimization.vehicles.length : 0}</span>
                     </div>
                     <div className="recent-info-item">
                       <FaMapMarkerAlt />
-                      <span>Locations: {selectedOptimization.locations.length}</span>
+                      <span>Locations: {selectedOptimization.locations ? selectedOptimization.locations.length : 0}</span>
                     </div>
                   </div>
                   
@@ -285,13 +294,13 @@ const Dashboard = () => {
                   {vehicles.length === 0 ? (
                     <div className="no-data">
                       <p>No vehicles added yet</p>
-                      <Link to="/vehicles/new" className="btn btn-outline-sm">
+                      <Link to="/vehicles/add" className="btn btn-outline-sm">
                         Add Vehicle
                       </Link>
                     </div>
                   ) : (
                     <div className="vehicles-grid">
-                      {vehicles.slice(0, 3).map(vehicle => (
+                      {vehicles && vehicles.slice(0, 3).map(vehicle => (
                         <div className="vehicle-card" key={vehicle._id}>
                           <div className="vehicle-icon">
                             <FaTruck />
@@ -318,7 +327,7 @@ const Dashboard = () => {
                   {locations.length === 0 ? (
                     <div className="no-data">
                       <p>No locations added yet</p>
-                      <Link to="/locations/new" className="btn btn-outline-sm">
+                      <Link to="/locations/add" className="btn btn-outline-sm">
                         Add Location
                       </Link>
                     </div>
@@ -333,10 +342,10 @@ const Dashboard = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {locations.slice(0, 5).map(location => (
+                          {locations && locations.slice(0, 5).map(location => (
                             <tr key={location._id}>
                               <td>{location.name}</td>
-                              <td>{location.address}</td>
+                              <td>{location.address || 'N/A'}</td>
                               <td>
                                 <span className={`location-type ${location.isDepot ? 'depot' : 'destination'}`}>
                                   {location.isDepot ? 'Depot' : 'Destination'}

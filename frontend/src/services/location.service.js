@@ -1,23 +1,33 @@
 import api from './api';
 
-const getAll = () => {
-  return api.get('/locations');
+const getAll = async () => {
+  try {
+    const response = await api.get('/locations');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching locations:', error);
+    throw error;
+  }
 };
 
-const get = (id) => {
-  return api.get(`/locations/${id}`);
+const get = async (id) => {
+  const response = await api.get(`/locations/${id}`);
+  return response.data;
 };
 
-const create = (data) => {
-  return api.post('/locations', data);
+const create = async (data) => {
+  const response = await api.post('/locations', data);
+  return response.data;
 };
 
-const update = (id, data) => {
-  return api.put(`/locations/${id}`, data);
+const update = async (id, data) => {
+  const response = await api.put(`/locations/${id}`, data);
+  return response.data;
 };
 
-const remove = (id) => {
-  return api.delete(`/locations/${id}`);
+const remove = async (id) => {
+  const response = await api.delete(`/locations/${id}`);
+  return response.data;
 };
 
 const LocationService = {

@@ -26,7 +26,7 @@ const VehicleForm = () => {
     try {
       setLoading(true);
       const response = await VehicleService.get(id);
-      const { name, capacity, count } = response.data;
+      const { name, capacity, count } = response;
       setFormData({ name, capacity: capacity.toString(), count: count.toString() });
     } catch (err) {
       setError('Failed to load vehicle data');

@@ -16,7 +16,7 @@ const Optimizations = () => {
     try {
       setLoading(true);
       const response = await OptimizationService.getAll();
-      setOptimizations(response.data);
+      setOptimizations(response);
       setError('');
     } catch (err) {
       setError('Failed to load optimizations');
@@ -30,7 +30,7 @@ const Optimizations = () => {
     if (window.confirm('Are you sure you want to delete this optimization?')) {
       try {
         await OptimizationService.remove(id);
-        setOptimizations(optimizations.filter(opt => opt._id !== id));
+        setOptimizations(optimizations ? optimizations.filter(opt => opt._id !== id) : []);
         setError('');
       } catch (err) {
         setError('Failed to delete optimization');
@@ -54,13 +54,13 @@ const Optimizations = () => {
 
       {error && <div className="alert alert-danger">{error}</div>}
 
-      {optimizations.length === 0 ? (
+      {!optimizations || optimizations.length === 0 ? (
         <div className="no-data">
           <p>No optimizations found. Create your first optimization!</p>
         </div>
       ) : (
         <div className="optimizations-grid">
-          {optimizations.map(optimization => (
+          {optimizations && optimizations.length > 0 && optimizations.map(optimization => (
             <div key={optimization._id} className="optimization-card">
               <h3>{optimization.name}</h3>
               <div className="optimization-details">
@@ -69,10 +69,10 @@ const Optimizations = () => {
                   {new Date(optimization.date).toLocaleDateString()}
                 </p>
                 <p>
-                  <i className="fas fa-route"></i> Routes: {optimization.routes.length}
+                  <i className="fas fa-route"></i> Routes: {optimization.routes ? optimization.routes.length : 0}
                 </p>
                 <p>
-                  <i className="fas fa-road"></i> Total Distance: {optimization.totalDistance.toFixed(2)} km
+                  <i className="fas fa-road"></i> Total Distance: {optimization.totalDistance ? optimization.totalDistance.toFixed(2) : '0.00'} km
                 </p>
               </div>
               <div className="optimization-actions">

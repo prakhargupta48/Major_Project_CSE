@@ -38,11 +38,12 @@ exports.getLocationById = async (req, res) => {
 
 // Create location
 exports.createLocation = async (req, res) => {
-  const { name, latitude, longitude, demand, isDepot } = req.body;
+  const { name, address, latitude, longitude, demand, isDepot } = req.body;
   
   try {
     const newLocation = new Location({
       name,
+      address,
       latitude,
       longitude,
       demand: demand || 0,
@@ -60,7 +61,7 @@ exports.createLocation = async (req, res) => {
 
 // Update location
 exports.updateLocation = async (req, res) => {
-  const { name, latitude, longitude, demand, isDepot } = req.body;
+  const { name, address, latitude, longitude, demand, isDepot } = req.body;
   
   try {
     let location = await Location.findById(req.params.id);
@@ -77,6 +78,7 @@ exports.updateLocation = async (req, res) => {
     
     // Update fields
     location.name = name || location.name;
+    location.address = address || location.address;
     location.latitude = latitude || location.latitude;
     location.longitude = longitude || location.longitude;
     

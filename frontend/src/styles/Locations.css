@@ -38,6 +38,13 @@
    text-align: left;
    border-bottom: 1px solid #e9ecef;
  }
+
+ .locations-table td:nth-child(2) {
+   max-width: 200px;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+ }
  
  .locations-table th {
    background-color: #f8f9fa;
