@@ -5,9 +5,11 @@ import LocationService from '../services/location.service';
 import OptimizationService from '../services/optimization.service';
 import Map from '../components/Map';
 import '../styles/NewOptimization.css';
+import { useAuth } from '../context/AuthContext';
 
 const NewOptimization = () => {
   const navigate = useNavigate();
+  const { currentUser, updateUserPreferences } = useAuth();
   const [name, setName] = useState('');
   const [vehicles, setVehicles] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -17,6 +19,13 @@ const NewOptimization = () => {
   const [optimizing, setOptimizing] = useState(false);
   const [error, setError] = useState('');
   const [step, setStep] = useState(1);
+  const [algorithm, setAlgorithm] = useState('clarke-wright');
+
+  useEffect(() => {
+    if (currentUser?.preferences?.defaultAlgorithm) {
+      setAlgorithm(currentUser.preferences.defaultAlgorithm);
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     fetchData();
@@ -88,11 +97,14 @@ const NewOptimization = () => {
       const optimizationData = {
         name,
         vehicleIds: selectedVehicles,
-        locationIds: selectedLocations
+        locationIds: selectedLocations,
+        algorithm,
       };
       
-             const response = await OptimizationService.create(optimizationData);
-       navigate(`/optimizations/${response._id}`);
+      const response = await OptimizationService.create(optimizationData);
+      // persist default algorithm if different
+      try { if (currentUser && currentUser?.preferences?.defaultAlgorithm !== algorithm) { await updateUserPreferences({ defaultAlgorithm: algorithm }); } } catch {}
+      navigate(`/optimizations/${response._id}`);
     } catch (err) {
       setError('Optimization failed. Please try again.');
       console.error(err);
@@ -221,8 +233,8 @@ const NewOptimization = () => {
                             />
                           </td>
                           <td>{location.name}</td>
-                          <td>{location.latitude.toFixed(6)}</td>
-                          <td>{location.longitude.toFixed(6)}</td>
+                          <td>{Number(location?.latitude ?? 0).toFixed(6)}</td>
+                          <td>{Number(location?.longitude ?? 0).toFixed(6)}</td>
                           <td>{location.demand || 0}</td>
                           <td>{location.isDepot ? 'Yes' : 'No'}</td>
                         </tr>
@@ -249,6 +261,14 @@ const NewOptimization = () => {
                   required
                   placeholder="e.g., Weekly Delivery Route"
                 />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="algorithm">Algorithm</label>
+                <select id="algorithm" value={algorithm} onChange={(e) => setAlgorithm(e.target.value)}>
+                  <option value="clarke-wright">Clarke-Wright (Savings)</option>
+                  <option value="nearest-neighbor">Nearest Neighbor</option>
+                </select>
               </div>
               
               <div className="summary-section">

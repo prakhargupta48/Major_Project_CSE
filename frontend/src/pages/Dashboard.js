@@ -83,8 +83,9 @@ const Dashboard = () => {
 
   // Format distance
   const formatDistance = (distance) => {
-    if (!distance) return '0 km';
-    return `${(distance / 1000).toFixed(2)} km`;
+    const n = Number(distance ?? 0);
+    if (!isFinite(n) || n <= 0) return '0 km';
+    return `${n.toFixed(2)} km`;
   };
 
   // Get optimization locations
@@ -138,10 +139,10 @@ const Dashboard = () => {
           </div>
         ) : (
           <>
-            <div className="dashboard-header">
+            <div className="dashboard-header" data-aos="fade-up">
               <div className="dashboard-title">
                 <h1>Dashboard</h1>
-                <p>Welcome back! Here's an overview of your route optimization data.</p>
+                <p>Welcome back{selectedOptimization ? '' : ','}! Here's an overview of your route optimization data.</p>
               </div>
               <div className="dashboard-actions">
                 <Link to="/optimizations/new" className="btn btn-primary">
@@ -150,7 +151,7 @@ const Dashboard = () => {
               </div>
             </div>
             
-            <div className="dashboard-stats">
+            <div className="dashboard-stats" data-aos="fade-up">
               <div className="stat-card" data-aos="fade-up">
                 <div className="stat-icon">
                   <FaTruck />

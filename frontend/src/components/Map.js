@@ -3,14 +3,16 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet-polylinedecorator';
 
 import LocationSearch from './LocationSearch';
 import '../styles/Map.css';
 
 const createCustomIcon = (color, type) => {
+  const fa = type === 'depot' ? 'fa-warehouse' : 'fa-map-marker-alt';
   return L.divIcon({
     className: `custom-marker ${type}`,
-    html: `<div style="background-color: ${color}"><i class="fas fa-${type === 'depot' ? 'warehouse' : 'map-marker-alt'}"></i></div>`,
+    html: `<div style="background-color: ${color}"><i class="fa ${fa}"></i><span style="display:none">${type === 'depot' ? '🏭' : '📍'}</span></div>`,
     iconSize: [30, 30],
     iconAnchor: [15, 30],
     popupAnchor: [0, -30]
@@ -36,11 +38,15 @@ const Map = ({
   vehicles = [],
   onLocationSelect, 
   onMapClick,
-  center = [51.505, -0.09],
+  center = [22.7196, 75.8577],
   zoom = 13,
-  height = "500px"
+  height = "500px",
+  useRoadNetwork = false,
+  routedPolylines = {},
 }) => {
   const [mapInstance, setMapInstance] = useState(null);
+  const [showRoutes, setShowRoutes] = useState(true);
+  const [routeVisibility, setRouteVisibility] = useState({});
   const routeColors = [
     '#FF5733', '#33FF57', '#3357FF', '#F033FF', '#FF33A8', 
     '#33FFF6', '#FFB533', '#BD33FF', '#FF3333', '#33FF33'
@@ -53,7 +59,9 @@ const Map = ({
 
   // Format distance
   const formatDistance = (distance) => {
-    return distance ? `${(distance / 1000).toFixed(2)} km` : 'N/A';
+    const n = Number(distance ?? 0);
+    if (!isFinite(n) || n <= 0) return 'N/A';
+    return `${n.toFixed(2)} km`;
   };
 
   // Format duration
@@ -76,6 +84,13 @@ const Map = ({
     }
   };
 
+  useEffect(() => {
+    // initialize visibility when routes change
+    const vis = {};
+    routes.forEach((_, idx) => { vis[idx] = true; });
+    setRouteVisibility(vis);
+  }, [routes]);
+
   return (
     <div className="map-wrapper" style={{ height }}>
       {onLocationSelect && (
@@ -86,6 +101,24 @@ const Map = ({
           />
         </div>
       )}
+
+      <div className="map-toolbar" style={{ position: 'absolute', zIndex: 1000, right: 12, top: 12, display: 'flex', gap: 8, flexDirection: 'column', alignItems: 'flex-end' }}>
+        <button className="btn btn-outline btn-sm" onClick={() => setShowRoutes((v) => !v)}>
+          {showRoutes ? 'Hide Routes' : 'Show Routes'}
+        </button>
+        {showRoutes && routes && routes.length > 0 && (
+          <div className="card card-hover" style={{ padding: 8, maxHeight: 260, overflow: 'auto' }}>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>Routes</div>
+            {routes.map((route, idx) => (
+              <label key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, cursor: 'pointer' }}>
+                <span style={{ width: 12, height: 12, borderRadius: 2, background: routeColors[idx % routeColors.length] }} />
+                <input type="checkbox" checked={!!routeVisibility[idx]} onChange={() => setRouteVisibility(prev => ({ ...prev, [idx]: !prev[idx] }))} />
+                <span style={{ fontSize: 12 }}>{(vehicles.find(v => v._id === route.vehicle)?.name) || route.vehicleName || `Route ${idx+1}`}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
       
       <MapContainer 
         center={center} 
@@ -117,7 +150,7 @@ const Map = ({
                 <h3>{location.name}</h3>
                 <p>{location.address}</p>
                 <p className="coordinates">
-                  <strong>Coordinates:</strong> {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
+                  <strong>Coordinates:</strong> {Number(location?.latitude ?? 0).toFixed(6)}, {Number(location?.longitude ?? 0).toFixed(6)}
                 </p>
                 {location.isDepot && <p className="depot-label">Depot</p>}
                 {location.demand > 0 && (
@@ -128,87 +161,51 @@ const Map = ({
           </Marker>
         ))}
         
-        {/* Render routes as polylines */}
-        {routes && routes.map((route, index) => {
-          // Skip routes without stops
+        {/* Render routes as polylines with arrow decorators */}
+        {showRoutes && routes && routes.map((route, index) => {
+          if (!routeVisibility[index]) return null;
           if (!route.stops || route.stops.length < 2) return null;
+          const color = routeColors[index % routeColors.length];
           
-          // Get coordinates for the route
-          const coordinates = route.stops.map(stop => {
-            // Handle both locationId and location references
-            const locationId = stop.locationId || (typeof stop.location === 'object' ? stop.location._id : stop.location);
-            const location = locations.find(loc => loc._id === locationId);
-            return location ? [location.latitude, location.longitude] : null;
-          }).filter(Boolean);
-          
-          // Get the vehicle for this route
-          const vehicle = getVehicleById(route.vehicle);
-          
+          let coordinates = [];
+          const routed = useRoadNetwork && routedPolylines && routedPolylines[index];
+          if (routed && routed.coordinates) {
+            // GeoJSON coordinates are [lng, lat]
+            coordinates = routed.coordinates.map(([lng, lat]) => [lat, lng]);
+          } else {
+            coordinates = route.stops.map(stop => {
+              const locationId = stop.locationId || (typeof stop.location === 'object' ? stop.location._id : stop.location);
+              const location = locations.find(loc => loc._id === locationId) || { latitude: stop.latitude, longitude: stop.longitude };
+              return location ? [location.latitude, location.longitude] : null;
+            }).filter(Boolean);
+          }
+
+          // TODO: If useRoadNetwork is true, fetch a routed polyline from OSRM/Google Directions here
           return (
             <React.Fragment key={`route-${index}`}>
               <Polyline 
                 positions={coordinates}
-                color={routeColors[index % routeColors.length]}
-                weight={4}
-                opacity={0.7}
-              >
-                <Popup>
-                  <div className="route-popup">
-                    <h3>Route for {vehicle.name}</h3>
-                    <p><strong>Distance:</strong> {formatDistance(route.distance)}</p>
-                    <p><strong>Duration:</strong> {formatDuration(route.duration)}</p>
-                    <p><strong>Stops:</strong> {route.stops.length}</p>
-                  </div>
-                </Popup>
-              </Polyline>
-              
-              {/* Add route markers with stop numbers */}
-              {route.stops.map((stop, stopIndex) => {
-                if (stopIndex === 0 || stopIndex === route.stops.length - 1) return null;
-                
-                const locationId = stop.locationId || (typeof stop.location === 'object' ? stop.location._id : stop.location);
-                const location = locations.find(loc => loc._id === locationId);
-                
-                if (!location) return null;
-                
-                return (
-                  <Marker
-                    key={`route-${index}-stop-${stopIndex}`}
-                    position={[location.latitude, location.longitude]}
-                    icon={L.divIcon({
-                      className: 'route-stop-marker',
-                      html: `<div style="background-color: ${routeColors[index % routeColors.length]}">${stopIndex}</div>`,
-                      iconSize: [24, 24],
-                      iconAnchor: [12, 12]
-                    })}
-                  >
-                    <Popup>
-                      <div className="stop-popup">
-                        <h3>Stop #{stopIndex}</h3>
-                        <p><strong>Location:</strong> {location.name}</p>
-                        {stop.arrivalTime && (
-                          <p><strong>Arrival Time:</strong> {stop.arrivalTime}</p>
-                        )}
-                      </div>
-                    </Popup>
-                  </Marker>
-                );
-              })}
+                color={color}
+                weight={5}
+                opacity={0.8}
+              />
+
             </React.Fragment>
           );
         })}
 
         {/* Add vehicle markers at the start of each route */}
-        {routes && routes.map((route, index) => {
+        {showRoutes && routes && routes.map((route, index) => {
+          if (!routeVisibility[index]) return null;
           if (!route.stops || route.stops.length < 2) return null;
 
           const firstStop = route.stops[0];
           const locationId = firstStop.locationId || (typeof firstStop.location === 'object' ? firstStop.location._id : firstStop.location);
-          const location = locations.find(loc => loc._id === locationId);
-
+          const location = locations.find(loc => loc._id === locationId) || { latitude: firstStop.latitude, longitude: firstStop.longitude };
           if (!location) return null;
 
           const vehicle = getVehicleById(route.vehicle);
+          const color = routeColors[index % routeColors.length];
 
           return (
             <Marker
@@ -216,23 +213,14 @@ const Map = ({
               position={[location.latitude, location.longitude]}
               icon={L.divIcon({
                 className: 'vehicle-marker',
-                html: `<div style="background-color: ${routeColors[index % routeColors.length]}; padding: 4px 6px; border-radius: 6px; color: white; display: flex; align-items: center; gap: 4px;">
-                         <i class="fas fa-truck"></i>
+                html: `<div style="background-color: ${color}; padding: 4px 6px; border-radius: 6px; color: white; display: flex; align-items: center; gap: 4px;">
+                         <i class="fa fa-truck"></i>
                          <span class="vehicle-name">${vehicle.name}</span>
                        </div>`,
                 iconSize: [80, 40],
                 iconAnchor: [40, 20]
               })}
-            >
-              <Popup>
-                <div className="vehicle-popup">
-                  <h3>{vehicle.name}</h3>
-                  <p><strong>Starting from:</strong> {location.name}</p>
-                  <p><strong>Route Distance:</strong> {formatDistance(route.distance)}</p>
-                  <p><strong>Route Duration:</strong> {formatDuration(route.duration)}</p>
-                </div>
-              </Popup>
-            </Marker>
+            />
           );
         })}
       </MapContainer>
