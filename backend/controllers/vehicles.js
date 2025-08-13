@@ -106,7 +106,7 @@ exports.deleteVehicle = async (req, res) => {
       return res.status(401).json({ msg: 'User not authorized' });
     }
     
-    await vehicle.remove();
+    await Vehicle.deleteOne({ _id: req.params.id, user: req.user.id });
     res.json({ msg: 'Vehicle removed' });
   } catch (err) {
     console.error(err.message);

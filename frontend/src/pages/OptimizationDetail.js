@@ -38,6 +38,7 @@ const OptimizationDetail = () => {
           }
         }
         setRoutedPolylines(map);
+        notify('Road routes loaded', 'success', { autoClose: 1200 });
       })();
     }
   }, [useRoadNetwork, optimization, id, notify]);
@@ -54,6 +55,7 @@ const OptimizationDetail = () => {
       const response = await OptimizationService.get(id);
       setOptimization(response);
       setError('');
+      notify('Optimization loaded', 'success', { autoClose: 1200 });
     } catch (err) {
       setError('Failed to load optimization details');
       console.error(err);
@@ -104,7 +106,7 @@ const OptimizationDetail = () => {
 
 
 return (
-  <div className="optimization-detail-container">
+  <div className="optimization-detail-container container mx-auto px-6 py-8">
     <div className="optimization-header">
       <div>
         <h1>{optimization.name}</h1>
@@ -114,10 +116,10 @@ return (
         </p>
       </div>
       <div className="optimization-actions">
-        <button className="btn btn-secondary" onClick={handleExport}>
+        <button className="btn btn-secondary rounded-lg px-4 py-2" onClick={handleExport}>
           <i className="fas fa-download"></i> Export JSON
         </button>
-        <Link to="/optimizations" className="btn btn-primary">
+        <Link to="/optimizations" className="btn btn-primary rounded-lg px-4 py-2">
           Back to List
         </Link>
       </div>
@@ -193,7 +195,7 @@ return (
         {activeTab === 'routes' && (
           <div className="routes-tab">
             {optimization.routes && optimization.routes.map((route, index) => (
-              <div key={index} className="route-card">
+              <div key={index} className="route-card rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
                 <h3>Route {index + 1} - {route.vehicleName}</h3>
                 <div className="chips">
                   <span className="chip"><i className="fa fa-road"></i>{Number((route.distance ?? route.totalDistance) ?? 0).toFixed(2)} km</span>

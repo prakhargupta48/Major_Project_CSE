@@ -119,7 +119,7 @@ exports.deleteOptimization = async (req, res) => {
       return res.status(401).json({ msg: 'User not authorized' });
     }
     
-    await optimization.remove();
+    await Optimization.deleteOne({ _id: req.params.id, user: req.user.id });
     res.json({ msg: 'Optimization removed' });
   } catch (err) {
     console.error(err.message);

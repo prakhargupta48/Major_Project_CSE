@@ -118,7 +118,7 @@ const NewOptimization = () => {
   }
 
   return (
-    <div className="new-optimization-container">
+    <div className="new-optimization-container container mx-auto px-6 py-8">
       <h1>New Optimization</h1>
       
       <div className="stepper">
@@ -146,7 +146,7 @@ const NewOptimization = () => {
               <div className="no-data">
                 <p>No vehicles found. Please add vehicles first.</p>
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-primary rounded-lg px-4 py-2"
                   onClick={() => navigate('/vehicles/add')}
                 >
                   Add Vehicle
@@ -193,7 +193,7 @@ const NewOptimization = () => {
               <div className="no-data">
                 <p>No locations found. Please add locations first.</p>
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-primary rounded-lg px-4 py-2"
                   onClick={() => navigate('/locations/add')}
                 >
                   Add Location
@@ -304,18 +304,18 @@ const NewOptimization = () => {
 
       <div className="step-actions">
         {step > 1 && (
-          <button className="btn btn-secondary" onClick={handlePrevStep}>
+          <button className="btn btn-secondary rounded-lg px-4 py-2" onClick={handlePrevStep}>
             Previous
           </button>
         )}
         
         {step < 3 ? (
-          <button className="btn btn-primary" onClick={handleNextStep}>
+          <button className="btn btn-primary rounded-lg px-4 py-2" onClick={handleNextStep}>
             Next
           </button>
         ) : (
           <button
-            className="btn btn-success"
+            className="btn btn-success rounded-lg px-4 py-2"
             onClick={handleOptimize}
             disabled={optimizing}
           >

@@ -119,8 +119,8 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="dashboard">
-      <div className="container">
+    <div className="dashboard bg-gray-50 dark:bg-gray-950 min-h-screen">
+      <div className="container mx-auto px-6 py-8">
         {loading ? (
           <div className="loading-container">
             <div className="spinner-large"></div>
@@ -145,7 +145,7 @@ const Dashboard = () => {
                 <p>Welcome back{selectedOptimization ? '' : ','}! Here's an overview of your route optimization data.</p>
               </div>
               <div className="dashboard-actions">
-                <Link to="/optimizations/new" className="btn btn-primary">
+                <Link to="/optimizations/new" className="btn btn-primary rounded-lg px-4 py-2">
                   <FaPlus /> New Optimization
                 </Link>
               </div>
@@ -197,10 +197,10 @@ const Dashboard = () => {
             </div>
             
             {selectedOptimization ? (
-              <div className="dashboard-recent" data-aos="fade-up">
+              <div className="dashboard-recent rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow" data-aos="fade-up">
                 <div className="recent-header">
                   <h2>Latest Optimization</h2>
-                  <Link to={`/optimizations/${selectedOptimization._id}`} className="btn btn-outline">
+                  <Link to={`/optimizations/${selectedOptimization._id}`} className="btn btn-outline rounded-lg px-4 py-2">
                     View Details
                   </Link>
                 </div>
@@ -245,7 +245,7 @@ const Dashboard = () => {
                         const vehicle = vehicles.find(v => v._id === route.vehicle) || { name: 'Unknown Vehicle' };
                         
                         return (
-                          <div className="route-card" key={index}>
+                          <div className="route-card rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm" key={index}>
                             <div className="route-header">
                               <div className="route-color" style={{ backgroundColor: ['#FF5733', '#33FF57', '#3357FF', '#F033FF', '#FF33A8'][index % 5] }}></div>
                               <h4>{vehicle.name}</h4>
@@ -278,7 +278,7 @@ const Dashboard = () => {
                 </div>
                 <h2>No Optimizations Yet</h2>
                 <p>Create your first route optimization to see results here.</p>
-                <Link to="/optimizations/new" className="btn btn-primary">
+                <Link to="/optimizations/new" className="btn btn-primary rounded-lg px-4 py-2">
                   Create Optimization
                 </Link>
               </div>
@@ -295,14 +295,14 @@ const Dashboard = () => {
                   {vehicles.length === 0 ? (
                     <div className="no-data">
                       <p>No vehicles added yet</p>
-                      <Link to="/vehicles/add" className="btn btn-outline-sm">
+                      <Link to="/vehicles/add" className="btn btn-outline-sm rounded-lg px-3 py-1.5">
                         Add Vehicle
                       </Link>
                     </div>
                   ) : (
                     <div className="vehicles-grid">
                       {vehicles && vehicles.slice(0, 3).map(vehicle => (
-                        <div className="vehicle-card" key={vehicle._id}>
+                        <div className="vehicle-card rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm" key={vehicle._id}>
                           <div className="vehicle-icon">
                             <FaTruck />
                           </div>
@@ -328,7 +328,7 @@ const Dashboard = () => {
                   {locations.length === 0 ? (
                     <div className="no-data">
                       <p>No locations added yet</p>
-                      <Link to="/locations/add" className="btn btn-outline-sm">
+                      <Link to="/locations/add" className="btn btn-outline-sm rounded-lg px-3 py-1.5">
                         Add Location
                       </Link>
                     </div>
@@ -344,7 +344,7 @@ const Dashboard = () => {
                         </thead>
                         <tbody>
                           {locations && locations.slice(0, 5).map(location => (
-                            <tr key={location._id}>
+                            <tr key={location._id} className="hover:bg-gray-50 dark:hover:bg-gray-900">
                               <td>{location.name}</td>
                               <td>{location.address || 'N/A'}</td>
                               <td>

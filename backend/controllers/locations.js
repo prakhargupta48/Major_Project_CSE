@@ -111,7 +111,7 @@ exports.deleteLocation = async (req, res) => {
       return res.status(401).json({ msg: 'User not authorized' });
     }
     
-    await location.remove();
+    await Location.deleteOne({ _id: req.params.id, user: req.user.id });
     res.json({ msg: 'Location removed' });
   } catch (err) {
     console.error(err.message);

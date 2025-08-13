@@ -22,6 +22,7 @@ const Optimizations = () => {
       const response = await OptimizationService.getAll();
       setOptimizations(response);
       setError('');
+      notify('Optimizations loaded', 'success', { autoClose: 1200 });
     } catch (err) {
       setError('Failed to load optimizations');
       notify('Failed to load optimizations', 'error');
@@ -39,9 +40,10 @@ const Optimizations = () => {
         setError('');
         notify('Optimization deleted', 'success');
       } catch (err) {
-        setError('Failed to delete optimization');
-        notify('Failed to delete optimization', 'error');
-        console.error(err);
+        const msg = err?.response?.data?.msg || 'Failed to delete optimization';
+        setError(msg);
+        notify(msg, 'error');
+        console.error('Delete optimization error:', err?.response?.data || err);
       }
     }
   };
@@ -62,7 +64,7 @@ const Optimizations = () => {
   }
 
   return (
-    <div className="optimizations-container">
+    <div className="optimizations-container container mx-auto px-6 py-8">
       <div className="optimizations-header">
         <h1>Optimizations</h1>
         <Link to="/optimizations/new" className="btn btn-primary">
@@ -79,7 +81,7 @@ const Optimizations = () => {
       ) : (
         <div className="optimizations-grid">
           {optimizations && optimizations.length > 0 && optimizations.map(optimization => (
-            <div key={optimization._id} className="optimization-card card card-hover">
+            <div key={optimization._id} className="optimization-card card card-hover rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow hover:shadow-md transition">
               <div className="optimization-header">
                 <div className="optimization-name">{optimization.name}</div>
                 <div className="optimization-meta">
@@ -90,12 +92,12 @@ const Optimizations = () => {
               <div className="optimization-details">
                 <p><i className="fas fa-road"></i> Total Distance: {Number(optimization?.totalDistance ?? 0).toFixed(2)} km</p>
               </div>
-              <div className="optimization-actions">
-                <Link to={`/optimizations/${optimization._id}`} className="btn btn-secondary">
+              <div className="optimization-actions flex gap-2">
+                <Link to={`/optimizations/${optimization._id}`} className="btn btn-secondary rounded-lg px-4 py-2">
                   View Details
                 </Link>
                 <button
-                  className="btn btn-danger"
+                  className="btn btn-danger rounded-lg px-4 py-2"
                   onClick={() => handleDelete(optimization._id)}
                 >
                   <i className="fas fa-trash"></i> Delete

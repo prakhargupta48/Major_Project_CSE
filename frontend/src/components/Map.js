@@ -9,10 +9,10 @@ import LocationSearch from './LocationSearch';
 import '../styles/Map.css';
 
 const createCustomIcon = (color, type) => {
-  const fa = type === 'depot' ? 'fa-warehouse' : 'fa-map-marker-alt';
+  const glyph = type === 'depot' ? '🏭' : '📍';
   return L.divIcon({
     className: `custom-marker ${type}`,
-    html: `<div style="background-color: ${color}"><i class="fa ${fa}"></i><span style="display:none">${type === 'depot' ? '🏭' : '📍'}</span></div>`,
+    html: `<div style="background-color:${color}; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:16px; line-height:1;">${glyph}</div>`,
     iconSize: [30, 30],
     iconAnchor: [15, 30],
     popupAnchor: [0, -30]
@@ -213,12 +213,12 @@ const Map = ({
               position={[location.latitude, location.longitude]}
               icon={L.divIcon({
                 className: 'vehicle-marker',
-                html: `<div style="background-color: ${color}; padding: 4px 6px; border-radius: 6px; color: white; display: flex; align-items: center; gap: 4px;">
-                         <i class="fa fa-truck"></i>
+                html: `<div style="background-color: ${color}; padding: 4px 6px; border-radius: 999px; color: white; display: inline-flex; align-items: center; gap: 6px; font-size: 12px;">
+                         <span>🚚</span>
                          <span class="vehicle-name">${vehicle.name}</span>
                        </div>`,
-                iconSize: [80, 40],
-                iconAnchor: [40, 20]
+                iconSize: [100, 32],
+                iconAnchor: [50, 16]
               })}
             />
           );
