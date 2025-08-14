@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import LocationService from '../services/location.service';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import LocationSearch from '../components/LocationSearch';
 import '../styles/Forms.css';
 
 const LocationForm = () => {
@@ -15,6 +16,7 @@ const LocationForm = () => {
 
   const [formData, setFormData] = useState({
     name: '',
+    address: '',
     latitude: '',
     longitude: '',
     demand: '0',
@@ -22,6 +24,8 @@ const LocationForm = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+  const [geocoding, setGeocoding] = useState(false);
 
   useEffect(() => {
     if (isEditMode) {
@@ -30,7 +34,7 @@ const LocationForm = () => {
 
     // Initialize map
     if (!mapInstanceRef.current && mapRef.current) {
-      mapInstanceRef.current = L.map(mapRef.current).setView([0, 0], 2);
+      mapInstanceRef.current = L.map(mapRef.current).setView([20, 0], 2);
       
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -47,6 +51,7 @@ const LocationForm = () => {
         mapInstanceRef.current = null;
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
@@ -76,9 +81,10 @@ const LocationForm = () => {
     try {
       setLoading(true);
       const response = await LocationService.get(id);
-      const { name, latitude, longitude, demand, isDepot } = response.data;
+      const { name, address, latitude, longitude, demand, isDepot } = response;
       setFormData({
-        name,
+        name: name || '',
+        address: address || '',
         latitude: latitude.toString(),
         longitude: longitude.toString(),
         demand: (demand || 0).toString(),
@@ -93,11 +99,57 @@ const LocationForm = () => {
   };
 
   const handleMapClick = (e) => {
-    setFormData({
-      ...formData,
-      latitude: e.latlng.lat.toString(),
-      longitude: e.latlng.lng.toString()
-    });
+    const { lat, lng } = e.latlng;
+    
+    // Update form data with clicked coordinates
+    setFormData(prev => ({
+      ...prev,
+      latitude: lat.toFixed(6),
+      longitude: lng.toFixed(6)
+    }));
+
+    // If no name is set, try to get address from coordinates
+    if (!formData.name) {
+      reverseGeocode(lat, lng);
+    }
+  };
+
+  const reverseGeocode = async (lat, lng) => {
+    setGeocoding(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        const address = data.display_name;
+        const name = address.split(',')[0];
+        
+        setFormData(prev => ({
+          ...prev,
+          name: name,
+          address: address
+        }));
+      }
+    } catch (err) {
+      console.error('Reverse geocoding failed:', err);
+      // Don't show error to user as this is just a convenience feature
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
+  const handleLocationSelect = (location) => {
+    setFormData(prev => ({
+      ...prev,
+      name: location.name || prev.name,
+      address: location.address || location.name,
+      latitude: location.latitude.toString(),
+      longitude: location.longitude.toString()
+    }));
+    
+    setShowSearch(false);
   };
 
   const onChange = e => {
@@ -113,6 +165,7 @@ const LocationForm = () => {
     try {
       const locationData = {
         name: formData.name,
+        address: formData.address,
         latitude: parseFloat(formData.latitude),
         longitude: parseFloat(formData.longitude),
         demand: parseInt(formData.demand),
@@ -144,12 +197,37 @@ const LocationForm = () => {
 
       {error && <div className="alert alert-danger">{error}</div>}
 
+      <div className="location-options">
+        <button
+          type="button"
+          className={`btn ${showSearch ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setShowSearch(!showSearch)}
+        >
+          <i className="fas fa-search"></i> Search Location
+        </button>
+        <span className="option-divider">or</span>
+        <span className="option-text">Click on the map below</span>
+      </div>
+
+      {showSearch && (
+        <div className="search-section">
+          <LocationSearch 
+            onLocationSelect={handleLocationSelect}
+            map={mapInstanceRef.current}
+          />
+        </div>
+      )}
+
       <div className="map-container" ref={mapRef}></div>
-      <p className="map-help">Click on the map to set location coordinates</p>
+      <p className="map-help">
+        <i className="fas fa-info-circle"></i>
+        Click on the map to set location coordinates. The location name and address will be automatically filled if available.
+        {geocoding && <span className="geocoding-indicator"> <i className="fas fa-spinner fa-spin"></i> Getting address...</span>}
+      </p>
 
       <form onSubmit={onSubmit}>
         <div className="form-group">
-          <label htmlFor="name">Location Name</label>
+          <label htmlFor="name">Location Name *</label>
           <input
             type="text"
             id="name"
@@ -157,12 +235,25 @@ const LocationForm = () => {
             value={formData.name}
             onChange={onChange}
             required
-            placeholder="e.g., Warehouse A"
+            placeholder="e.g., Warehouse A, Office Building, etc."
           />
         </div>
+        
+        <div className="form-group">
+          <label htmlFor="address">Address</label>
+          <textarea
+            id="address"
+            name="address"
+            value={formData.address}
+            onChange={onChange}
+            placeholder="Full address of the location"
+            rows="3"
+          />
+        </div>
+
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="latitude">Latitude</label>
+            <label htmlFor="latitude">Latitude *</label>
             <input
               type="text"
               id="latitude"
@@ -171,10 +262,11 @@ const LocationForm = () => {
               onChange={onChange}
               required
               placeholder="e.g., 40.7128"
+              readOnly={showSearch}
             />
           </div>
           <div className="form-group">
-            <label htmlFor="longitude">Longitude</label>
+            <label htmlFor="longitude">Longitude *</label>
             <input
               type="text"
               id="longitude"
@@ -183,9 +275,11 @@ const LocationForm = () => {
               onChange={onChange}
               required
               placeholder="e.g., -74.0060"
+              readOnly={showSearch}
             />
           </div>
         </div>
+        
         <div className="form-group">
           <label htmlFor="demand">Demand</label>
           <input
@@ -197,7 +291,9 @@ const LocationForm = () => {
             min="0"
             placeholder="e.g., 100"
           />
+          <small className="form-help">Amount of goods to be delivered/picked up at this location</small>
         </div>
+        
         <div className="form-group checkbox-group">
           <input
             type="checkbox"
@@ -206,8 +302,9 @@ const LocationForm = () => {
             checked={formData.isDepot}
             onChange={onChange}
           />
-          <label htmlFor="isDepot">This is a depot</label>
+          <label htmlFor="isDepot">This is a depot (starting/ending point for vehicles)</label>
         </div>
+        
         <div className="form-actions">
           <button type="button" className="btn btn-secondary" onClick={() => navigate('/locations')}>
             Cancel

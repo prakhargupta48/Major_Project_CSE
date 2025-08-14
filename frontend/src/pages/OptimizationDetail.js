@@ -3,6 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import OptimizationService from '../services/optimization.service';
 import Map from '../components/Map';
 import '../styles/OptimizationDetail.css';
+import LoadingSkeleton from '../components/LoadingSkeleton';
+import { useToast } from '../components/ToastProvider';
+import { useAuth } from '../context/AuthContext';
 
 const OptimizationDetail = () => {
   const { id } = useParams();
@@ -11,17 +14,48 @@ const OptimizationDetail = () => {
   
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('routes');
+  const { notify } = useToast();
+  const { currentUser } = useAuth();
+  const [useRoadNetwork, setUseRoadNetwork] = useState(false);
+  const [routedPolylines, setRoutedPolylines] = useState({});
 
   useEffect(() => {
     fetchOptimization();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  useEffect(() => {
+    if (useRoadNetwork && optimization?.routes) {
+      // fetch polylines per route
+      (async () => {
+        const map = {};
+        for (let i = 0; i < optimization.routes.length; i++) {
+          try {
+            const data = await OptimizationService.getRoutedPolyline(id, i);
+            map[i] = data.geometry;
+          } catch (e) {
+            notify('Failed to fetch routed polyline', 'error');
+          }
+        }
+        setRoutedPolylines(map);
+        notify('Road routes loaded', 'success', { autoClose: 1200 });
+      })();
+    }
+  }, [useRoadNetwork, optimization, id, notify]);
+
+  useEffect(() => {
+    if (currentUser?.preferences?.preferRoadNetwork) {
+      setUseRoadNetwork(true);
+    }
+  }, [currentUser]);
 
   const fetchOptimization = async () => {
     try {
       setLoading(true);
       const response = await OptimizationService.get(id);
-      setOptimization(response.data);
+      setOptimization(response);
       setError('');
+      notify('Optimization loaded', 'success', { autoClose: 1200 });
     } catch (err) {
       setError('Failed to load optimization details');
       console.error(err);
@@ -33,19 +67,28 @@ const OptimizationDetail = () => {
   const handleExport = () => {
     if (!optimization) return;
     
-    const dataStr = JSON.stringify(optimization, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = `optimization-${optimization.name.replace(/\s+/g, '-').toLowerCase()}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
+    try {
+      const dataStr = JSON.stringify(optimization, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      
+      const exportFileDefaultName = `optimization-${optimization.name.replace(/\s+/g, '-').toLowerCase()}.json`;
+      
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+      notify('Optimization exported', 'success');
+    } catch (e) {
+      notify('Export failed', 'error');
+    }
   };
 
   if (loading) {
-    return <div className="loading">Loading...</div>;
+    return (
+      <div className="optimization-detail-container">
+        <LoadingSkeleton lines={6} />
+      </div>
+    );
   }
 
   if (!optimization) {
@@ -61,148 +104,9 @@ const OptimizationDetail = () => {
     );
   }
 
-  return (
-  <div className="optimization-detail-container">
-    <div className="optimization-header">
-      <div>
-        <h1>{optimization.name}</h1>
-        <p className="optimization-date">
-          <i className="fas fa-calendar"></i>{' '}
-          {new Date(optimization.date).toLocaleDateString()}
-        </p>
-      </div>
-      <div className="optimization-actions">
-        <button className="btn btn-secondary" onClick={handleExport}>
-          <i className="fas fa-download"></i> Export JSON
-        </button>
-        <Link to="/optimizations" className="btn btn-primary">
-          Back to List
-        </Link>
-      </div>
-    </div>
 
-    <div className="optimization-summary">
-      <div className="summary-card" data-aos="fade-up">
-        <div className="summary-icon">
-          <i className="fas fa-route"></i>
-        </div>
-        <div className="summary-content">
-          <h3>Routes</h3>
-          <p className="summary-value">{optimization.routes.length}</p>
-        </div>
-      </div>
-      <div className="summary-card" data-aos="fade-up" data-aos-delay="100">
-        <div className="summary-icon">
-          <i className="fas fa-road"></i>
-        </div>
-        <div className="summary-content">
-          <h3>Total Distance</h3>
-          <p className="summary-value">{optimization.totalDistance.toFixed(2)} km</p>
-        </div>
-      </div>
-    </div>
-
-    <div className="map-wrapper" data-aos="fade-up">
-      <Map
-        locations={optimization.routes.flatMap(route => 
-          route.stops.map(stop => ({
-            _id: stop.locationId,
-            name: stop.locationName,
-            latitude: stop.latitude,
-            longitude: stop.longitude,
-            demand: stop.demand
-          }))
-        )}
-        routes={optimization.routes}
-      />
-    </div>
-
-    <div className="optimization-tabs" data-aos="fade-up">
-      <div className="tabs-header">
-        <button
-          className={`tab-button ${activeTab === 'routes' ? 'active' : ''}`}
-          onClick={() => setActiveTab('routes')}
-        >
-          Routes
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'details' ? 'active' : ''}`}
-          onClick={() => setActiveTab('details')}
-        >
-          Details
-        </button>
-      </div>
-      
-      <div className="tabs-content">
-        {activeTab === 'routes' && (
-          <div className="routes-tab">
-            {optimization.routes.map((route, index) => (
-              <div key={index} className="route-card">
-                <h3>Route {index + 1} - {route.vehicleName}</h3>
-                <p>
-                  <strong>Total Distance:</strong> {route.totalDistance.toFixed(2)} km
-                </p>
-                <p>
-                  <strong>Total Capacity:</strong> {route.totalCapacity}
-                </p>
-                <div className="route-stops">
-                  <h4>Stops</h4>
-                  <ol className="stops-list">
-                    {route.stops.map((stop, stopIndex) => (
-                      <li key={stopIndex}>
-                        {stop.locationName}
-                        {stop.demand > 0 && ` (Demand: ${stop.demand})`}
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        
-        {activeTab === 'details' && (
-          <div className="details-tab">
-            <div className="details-section">
-              <h3>Optimization Details</h3>
-              <table className="details-table">
-                <tbody>
-                  <tr>
-                    <td>Name</td>
-                    <td>{optimization.name}</td>
-                  </tr>
-                  <tr>
-                    <td>Date</td>
-                    <td>{new Date(optimization.date).toLocaleString()}</td>
-                  </tr>
-                  <tr>
-                    <td>Total Routes</td>
-                    <td>{optimization.routes.length}</td>
-                  </tr>
-                  <tr>
-                    <td>Total Distance</td>
-                    <td>{optimization.totalDistance.toFixed(2)} km</td>
-                  </tr>
-                  <tr>
-                    <td>Total Stops</td>
-                    <td>
-                      {optimization.routes.reduce(
-                        (total, route) => total + route.stops.length,
-                        0
-                      )}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  </div>
-);
 return (
-  <div className="optimization-detail-container">
+  <div className="optimization-detail-container container mx-auto px-6 py-8">
     <div className="optimization-header">
       <div>
         <h1>{optimization.name}</h1>
@@ -212,10 +116,13 @@ return (
         </p>
       </div>
       <div className="optimization-actions">
-        <button className="btn btn-secondary" onClick={handleExport}>
+        <button className="btn btn-secondary rounded-lg px-4 py-2" onClick={handleExport}>
           <i className="fas fa-download"></i> Export JSON
         </button>
-        <Link to="/optimizations" className="btn btn-primary">
+        <Link to={`/optimizations/${optimization._id}/print`} className="btn btn-outline rounded-lg px-4 py-2">
+          <i className="fas fa-print"></i> Print Route Sheets
+        </Link>
+        <Link to="/optimizations" className="btn btn-primary rounded-lg px-4 py-2">
           Back to List
         </Link>
       </div>
@@ -237,12 +144,71 @@ return (
         </div>
         <div className="summary-content">
           <h3>Total Distance</h3>
-          <p className="summary-value">{optimization.totalDistance.toFixed(2)} km</p>
+          <p className="summary-value">
+            {useRoadNetwork && routedPolylines && Object.keys(routedPolylines).length > 0
+              ? `${optimization.routes.reduce((sum, _, idx) => sum + (((routedPolylines[idx]?.distanceKm) || 0)), 0).toFixed(2)} km`
+              : `${Number(optimization?.totalDistance ?? 0).toFixed(2)} km`}
+          </p>
+        </div>
+      </div>
+      <div className="summary-card" data-aos="fade-up" data-aos-delay="150">
+        <div className="summary-icon">
+          <i className="fas fa-truck"></i>
+        </div>
+        <div className="summary-content">
+          <h3>Utilization</h3>
+          <p className="summary-value">
+            {(() => {
+              const vehCount = (optimization.vehicles || []).length || 1;
+              const used = new Set((optimization.routes || []).map(r => r.vehicle).filter(Boolean)).size;
+              return `${used}/${vehCount} vehicles used`;
+            })()}
+          </p>
         </div>
       </div>
     </div>
 
+    <div className="analytics-section mt-6 grid md:grid-cols-4 gap-4" data-aos="fade-up">
+      {(() => {
+        const routes = optimization.routes || [];
+        const distances = routes.map(r => Number((r.distance ?? r.totalDistance) ?? 0));
+        const totalStops = routes.reduce((s, r) => s + (r.stops?.length || 0), 0);
+        const totalDistance = distances.reduce((a, b) => a + b, 0);
+        const avgStops = routes.length ? (totalStops / routes.length) : 0;
+        const avgDistance = routes.length ? (totalDistance / routes.length) : 0;
+        const longestIdx = distances.indexOf(Math.max(...distances, 0));
+        const shortestIdx = distances.indexOf(Math.min(...distances, Infinity));
+        return (
+          <>
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm">
+              <div className="text-sm text-gray-600 dark:text-gray-400">Total Stops</div>
+              <div className="text-2xl font-bold">{totalStops}</div>
+            </div>
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm">
+              <div className="text-sm text-gray-600 dark:text-gray-400">Avg Stops/Route</div>
+              <div className="text-2xl font-bold">{avgStops.toFixed(1)}</div>
+            </div>
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm">
+              <div className="text-sm text-gray-600 dark:text-gray-400">Avg Distance/Route</div>
+              <div className="text-2xl font-bold">{avgDistance.toFixed(2)} km</div>
+            </div>
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm">
+              <div className="text-sm text-gray-600 dark:text-gray-400">Longest/Shortest</div>
+              <div className="text-sm">Longest: Route {longestIdx + 1}</div>
+              <div className="text-sm">Shortest: Route {shortestIdx + 1}</div>
+            </div>
+          </>
+        );
+      })()}
+    </div>
+
     <div className="map-wrapper" data-aos="fade-up">
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <input type="checkbox" checked={useRoadNetwork} onChange={() => setUseRoadNetwork(v => !v)} />
+          <span>Use road network (beta)</span>
+        </label>
+      </div>
       <Map
         locations={optimization.routes.flatMap(route => 
           route.stops.map(stop => ({
@@ -250,10 +216,14 @@ return (
             name: stop.locationName,
             latitude: stop.latitude,
             longitude: stop.longitude,
-            demand: stop.demand
+            demand: stop.demand,
+            isDepot: stop.order === 0 || stop.order === (route.stops.length - 1)
           }))
         )}
         routes={optimization.routes}
+        vehicles={optimization.vehicles || []}
+        useRoadNetwork={useRoadNetwork}
+        routedPolylines={routedPolylines}
       />
     </div>
 
@@ -276,11 +246,15 @@ return (
       <div className="tabs-content">
         {activeTab === 'routes' && (
           <div className="routes-tab">
-            {optimization.routes.map((route, index) => (
-              <div key={index} className="route-card">
+            {optimization.routes && optimization.routes.map((route, index) => (
+              <div key={index} className="route-card rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
                 <h3>Route {index + 1} - {route.vehicleName}</h3>
+                <div className="chips">
+                  <span className="chip"><i className="fa fa-road"></i>{Number((route.distance ?? route.totalDistance) ?? 0).toFixed(2)} km</span>
+                  <span className="chip"><i className="fa fa-clock"></i>{route.duration ? `${Math.floor(route.duration / 60)} min` : 'N/A'}</span>
+                </div>
                 <p>
-                  <strong>Total Distance:</strong> {route.totalDistance.toFixed(2)} km
+                  <strong>Total Distance:</strong> {Number((route.distance ?? route.totalDistance) ?? 0).toFixed(2)} km
                 </p>
                 <p>
                   <strong>Total Capacity:</strong> {route.totalCapacity}
@@ -290,8 +264,13 @@ return (
                   <ol className="stops-list">
                     {route.stops.map((stop, stopIndex) => (
                       <li key={stopIndex}>
-                        {stop.locationName}
-                        {stop.demand > 0 && ` (Demand: ${stop.demand})`}
+                        <span>{stop.locationName}</span>
+                        <span>
+                          {stop.demand > 0 && <span className="chip stop-chip">Demand: {stop.demand}</span>}
+                          {stopIndex === 0 || stopIndex === route.stops.length - 1 ? (
+                            <span className="badge stop-chip">Depot</span>
+                          ) : null}
+                        </span>
                       </li>
                     ))}
                   </ol>
@@ -321,7 +300,7 @@ return (
                   </tr>
                   <tr>
                     <td>Total Distance</td>
-                    <td>{optimization.totalDistance.toFixed(2)} km</td>
+                    <td>{Number(optimization?.totalDistance ?? 0).toFixed(2)} km</td>
                   </tr>
                   <tr>
                     <td>Total Stops</td>

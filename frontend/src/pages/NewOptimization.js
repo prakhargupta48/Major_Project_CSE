@@ -5,9 +5,11 @@ import LocationService from '../services/location.service';
 import OptimizationService from '../services/optimization.service';
 import Map from '../components/Map';
 import '../styles/NewOptimization.css';
+import { useAuth } from '../context/AuthContext';
 
 const NewOptimization = () => {
   const navigate = useNavigate();
+  const { currentUser, updateUserPreferences } = useAuth();
   const [name, setName] = useState('');
   const [vehicles, setVehicles] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -17,6 +19,13 @@ const NewOptimization = () => {
   const [optimizing, setOptimizing] = useState(false);
   const [error, setError] = useState('');
   const [step, setStep] = useState(1);
+  const [algorithm, setAlgorithm] = useState('clarke-wright');
+
+  useEffect(() => {
+    if (currentUser?.preferences?.defaultAlgorithm) {
+      setAlgorithm(currentUser.preferences.defaultAlgorithm);
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     fetchData();
@@ -30,8 +39,8 @@ const NewOptimization = () => {
         LocationService.getAll()
       ]);
 
-      setVehicles(vehiclesRes.data);
-      setLocations(locationsRes.data);
+      setVehicles(vehiclesRes || []);
+      setLocations(locationsRes || []);
     } catch (err) {
       setError('Failed to load data');
       console.error(err);
@@ -88,11 +97,14 @@ const NewOptimization = () => {
       const optimizationData = {
         name,
         vehicleIds: selectedVehicles,
-        locationIds: selectedLocations
+        locationIds: selectedLocations,
+        algorithm,
       };
       
       const response = await OptimizationService.create(optimizationData);
-      navigate(`/optimizations/${response.data._id}`);
+      // persist default algorithm if different
+      try { if (currentUser && currentUser?.preferences?.defaultAlgorithm !== algorithm) { await updateUserPreferences({ defaultAlgorithm: algorithm }); } } catch {}
+      navigate(`/optimizations/${response._id}`);
     } catch (err) {
       setError('Optimization failed. Please try again.');
       console.error(err);
@@ -106,7 +118,7 @@ const NewOptimization = () => {
   }
 
   return (
-    <div className="new-optimization-container">
+    <div className="new-optimization-container container mx-auto px-6 py-8">
       <h1>New Optimization</h1>
       
       <div className="stepper">
@@ -134,7 +146,7 @@ const NewOptimization = () => {
               <div className="no-data">
                 <p>No vehicles found. Please add vehicles first.</p>
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-primary rounded-lg px-4 py-2"
                   onClick={() => navigate('/vehicles/add')}
                 >
                   Add Vehicle
@@ -142,7 +154,7 @@ const NewOptimization = () => {
               </div>
             ) : (
               <div className="vehicles-grid">
-                {vehicles.map(vehicle => (
+                {vehicles && vehicles.map(vehicle => (
                   <div
                     key={vehicle._id}
                     className={`vehicle-card ${selectedVehicles.includes(vehicle._id) ? 'selected' : ''}`}
@@ -181,7 +193,7 @@ const NewOptimization = () => {
               <div className="no-data">
                 <p>No locations found. Please add locations first.</p>
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-primary rounded-lg px-4 py-2"
                   onClick={() => navigate('/locations/add')}
                 >
                   Add Location
@@ -207,7 +219,7 @@ const NewOptimization = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {locations.map(location => (
+                      {locations && locations.map(location => (
                         <tr
                           key={location._id}
                           className={selectedLocations.includes(location._id) ? 'selected' : ''}
@@ -221,8 +233,8 @@ const NewOptimization = () => {
                             />
                           </td>
                           <td>{location.name}</td>
-                          <td>{location.latitude.toFixed(6)}</td>
-                          <td>{location.longitude.toFixed(6)}</td>
+                          <td>{Number(location?.latitude ?? 0).toFixed(6)}</td>
+                          <td>{Number(location?.longitude ?? 0).toFixed(6)}</td>
                           <td>{location.demand || 0}</td>
                           <td>{location.isDepot ? 'Yes' : 'No'}</td>
                         </tr>
@@ -250,11 +262,19 @@ const NewOptimization = () => {
                   placeholder="e.g., Weekly Delivery Route"
                 />
               </div>
+
+              <div className="form-group">
+                <label htmlFor="algorithm">Algorithm</label>
+                <select id="algorithm" value={algorithm} onChange={(e) => setAlgorithm(e.target.value)}>
+                  <option value="clarke-wright">Clarke-Wright (Savings)</option>
+                  <option value="nearest-neighbor">Nearest Neighbor</option>
+                </select>
+              </div>
               
               <div className="summary-section">
                 <h3>Selected Vehicles ({selectedVehicles.length})</h3>
                 <ul>
-                  {vehicles
+                  {vehicles && vehicles
                     .filter(v => selectedVehicles.includes(v._id))
                     .map(vehicle => (
                       <li key={vehicle._id}>
@@ -267,7 +287,7 @@ const NewOptimization = () => {
               <div className="summary-section">
                 <h3>Selected Locations ({selectedLocations.length})</h3>
                 <ul>
-                  {locations
+                  {locations && locations
                     .filter(l => selectedLocations.includes(l._id))
                     .map(location => (
                       <li key={location._id}>
@@ -284,18 +304,18 @@ const NewOptimization = () => {
 
       <div className="step-actions">
         {step > 1 && (
-          <button className="btn btn-secondary" onClick={handlePrevStep}>
+          <button className="btn btn-secondary rounded-lg px-4 py-2" onClick={handlePrevStep}>
             Previous
           </button>
         )}
         
         {step < 3 ? (
-          <button className="btn btn-primary" onClick={handleNextStep}>
+          <button className="btn btn-primary rounded-lg px-4 py-2" onClick={handleNextStep}>
             Next
           </button>
         ) : (
           <button
-            className="btn btn-success"
+            className="btn btn-success rounded-lg px-4 py-2"
             onClick={handleOptimize}
             disabled={optimizing}
           >

@@ -3,11 +3,15 @@ import { Link } from 'react-router-dom';
 import LocationService from '../services/location.service';
 import Map from '../components/Map';
 import '../styles/Locations.css';
+import LoadingSkeleton from '../components/LoadingSkeleton';
+import { useToast } from '../components/ToastProvider';
 
 const Locations = () => {
   const [locations, setLocations] = useState([]);
+  const [previewLocations, setPreviewLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { notify } = useToast();
 
   useEffect(() => {
     fetchLocations();
@@ -17,10 +21,12 @@ const Locations = () => {
     try {
       setLoading(true);
       const response = await LocationService.getAll();
-      setLocations(response.data);
+      setLocations(response || []);
       setError('');
+      notify('Locations loaded', 'success', { autoClose: 1200 });
     } catch (err) {
       setError('Failed to load locations');
+      notify('Failed to load locations', 'error');
       console.error(err);
     } finally {
       setLoading(false);
@@ -33,19 +39,36 @@ const Locations = () => {
         await LocationService.remove(id);
         setLocations(locations.filter(location => location._id !== id));
         setError('');
+        notify('Location deleted', 'success');
       } catch (err) {
-        setError('Failed to delete location');
-        console.error(err);
+        const msg = err?.response?.data?.msg || 'Failed to delete location';
+        setError(msg);
+        notify(msg, 'error');
+        console.error('Delete location error:', err?.response?.data || err);
       }
     }
   };
 
+  const handleLocationSelect = ({ latitude, longitude, name }) => {
+    setPreviewLocations([{ _id: 'preview', name: name || 'Selected', latitude, longitude, demand: 0, isDepot: false }]);
+  };
+
   if (loading) {
-    return <div className="loading">Loading...</div>;
+    return (
+      <div className="locations-container container mx-auto px-6 py-8">
+        <div className="locations-header">
+          <h1>Locations</h1>
+          <Link to="/locations/add" className="btn btn-primary">
+            <i className="fas fa-plus"></i> Add Location
+          </Link>
+        </div>
+        <LoadingSkeleton lines={5} />
+      </div>
+    );
   }
 
   return (
-    <div className="locations-container">
+    <div className="locations-container container mx-auto px-6 py-8">
       <div className="locations-header">
         <h1>Locations</h1>
         <Link to="/locations/add" className="btn btn-primary">
@@ -54,10 +77,10 @@ const Locations = () => {
       </div>
 
       {error && <div className="alert alert-danger">{error}</div>}
-
-      {locations.length > 0 && (
-        <div className="map-wrapper">
-          <Map locations={locations} />
+  
+      {(locations.length > 0 || previewLocations.length > 0) && (
+        <div className="map-wrapper rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow">
+          <Map locations={[...locations, ...previewLocations]} onLocationSelect={handleLocationSelect} />
         </div>
       )}
 
@@ -71,6 +94,7 @@ const Locations = () => {
             <thead>
               <tr>
                 <th>Name</th>
+                <th>Address</th>
                 <th>Latitude</th>
                 <th>Longitude</th>
                 <th>Demand</th>
@@ -79,20 +103,21 @@ const Locations = () => {
               </tr>
             </thead>
             <tbody>
-              {locations.map(location => (
+              {locations && locations.map(location => (
                 <tr key={location._id}>
                   <td>{location.name}</td>
-                  <td>{location.latitude.toFixed(6)}</td>
-                  <td>{location.longitude.toFixed(6)}</td>
+                  <td>{location.address || 'N/A'}</td>
+                  <td>{Number(location?.latitude ?? 0).toFixed(6)}</td>
+                  <td>{Number(location?.longitude ?? 0).toFixed(6)}</td>
                   <td>{location.demand || 0}</td>
                   <td>{location.isDepot ? 'Yes' : 'No'}</td>
                   <td>
-                    <div className="table-actions">
-                      <Link to={`/locations/edit/${location._id}`} className="btn btn-secondary btn-sm">
+                    <div className="table-actions flex gap-2">
+                      <Link to={`/locations/edit/${location._id}`} className="btn btn-secondary btn-sm rounded-md px-3 py-1.5">
                         <i className="fas fa-edit"></i>
                       </Link>
                       <button
-                        className="btn btn-danger btn-sm"
+                        className="btn btn-danger btn-sm rounded-md px-3 py-1.5"
                         onClick={() => handleDelete(location._id)}
                       >
                         <i className="fas fa-trash"></i>

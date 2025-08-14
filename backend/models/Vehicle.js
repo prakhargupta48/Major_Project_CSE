@@ -19,6 +19,10 @@ const VehicleSchema = new mongoose.Schema({
     required: true,
     default: 1
   },
+  maxDistance: {
+    type: Number,
+    default: 100000 // 100km in meters
+  },
   date: {
     type: Date,
     default: Date.now

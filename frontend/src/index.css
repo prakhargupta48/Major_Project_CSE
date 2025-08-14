@@ -1,13 +1,151 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hero animated gradient */
+.animated-gradient {
+  background: linear-gradient(120deg, #eef6ff, #eef2ff, #f3f7fb);
+  background-size: 200% 200%;
+  animation: gradientShift 12s ease infinite;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.dark .animated-gradient,
+:root[data-theme='dark'] .animated-gradient {
+  background: linear-gradient(120deg, #0b1321, #0f172a, #111827);
+  background-size: 200% 200%;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Refined Theme Overrides */
+:root[data-theme='light'] {
+  --color-bg: #eef2f7;
+  --color-surface: #fcfdff;
+  --color-text: #111827;
+  --color-muted: #6b7280;
+}
+
+:root[data-theme='dark'] {
+  --color-bg: #0b1321;
+  --color-surface: #101826;
+  --color-text: #e6edf3;
+  --color-muted: #9aa4b2;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+.card,
+.navbar,
+.optimization-card,
+.optimization-tabs,
+.summary-card,
+.map-wrapper,
+.dashboard-section,
+.dashboard-recent,
+.locations-container .locations-list {
+  background-color: var(--color-surface) !important;
+  color: var(--color-text);
+}
+
+.no-data p,
+.recent-info-item,
+.route-detail span,
+.optimization-date {
+  color: var(--color-muted);
+}
+
+/* Navbar animations */
+.anim-fade-up {
+  animation: fadeUp 0.6s ease both;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Additional landing animations */
+.blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(40px);
+  opacity: 0.35;
+  animation: blobMove 18s ease-in-out infinite;
+}
+@keyframes blobMove {
+  0% { transform: translate(0,0) scale(1); }
+  33% { transform: translate(30px,-20px) scale(1.05); }
+  66% { transform: translate(-20px,20px) scale(0.95); }
+  100% { transform: translate(0,0) scale(1); }
+}
+
+.float-slow { animation: floatSlow 6s ease-in-out infinite; }
+@keyframes floatSlow {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+
+.marquee {
+  overflow: hidden;
+  position: relative;
+}
+.marquee-track {
+  display: flex;
+  gap: 2rem;
+  white-space: nowrap;
+  animation: marquee 20s linear infinite;
+}
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Global card hover effect */
+.card-hover {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  will-change: transform, box-shadow;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+}
+
+/* Helper */
+.will-change-transform { will-change: transform; }
+
+
+.density-compact .btn { padding: 0.375rem 0.625rem; font-size: 0.9rem; }
+.density-compact .card, .density-compact .card-hover { padding: 0.75rem !important; }
+.density-compact .navbar-link { padding: 0.25rem 0.5rem; }
+.density-compact .locations-table td, .density-compact .locations-table th { padding: 0.4rem 0.5rem; }
+
+:focus-visible {
+  outline: 3px solid #60a5fa;
+  outline-offset: 2px;
+}
+.dark :focus-visible { outline-color: #38bdf8; }
+
+@media print {
+  .navbar, .map-wrapper, .btn, .navbar-mobile-toggle { display: none !important; }
+  body { background: #fff !important; }
+  .print-friendly .container { max-width: 100% !important; }
+  .print-friendly .rounded-xl { box-shadow: none !important; border-color: #e5e7eb !important; }
 }

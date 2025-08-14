@@ -2,14 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaTruck, FaSignOutAlt, FaUser, FaBars, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import '../styles/Navbar.css';
 
 const Navbar = () => {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, updateUserPreferences } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [savingPrefs, setSavingPrefs] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -39,8 +42,8 @@ const Navbar = () => {
 
   return (
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
-      <div className="container">
-        <Link to="/dashboard" className="navbar-brand">
+      <div className="container mx-auto px-6">
+        <Link to="/" className="navbar-brand">
           <FaTruck className="brand-icon" />
           <span className="brand-text">RouteOptimizer</span>
         </Link>
@@ -50,51 +53,94 @@ const Navbar = () => {
         </div>
 
         <div className={`navbar-menu ${isOpen ? 'open' : ''}`}>
-          <div className="navbar-links">
-            <Link 
-              to="/dashboard" 
-              className={`navbar-link ${location.pathname === '/dashboard' ? 'active' : ''}`}
-              onClick={closeMenu}
-            >
-              Dashboard
-            </Link>
-            <Link 
-              to="/vehicles" 
-              className={`navbar-link ${location.pathname.startsWith('/vehicles') ? 'active' : ''}`}
-              onClick={closeMenu}
-            >
-              Vehicles
-            </Link>
-            <Link 
-              to="/locations" 
-              className={`navbar-link ${location.pathname.startsWith('/locations') ? 'active' : ''}`}
-              onClick={closeMenu}
-            >
-              Locations
-            </Link>
-            <Link 
-              to="/optimizations" 
-              className={`navbar-link ${location.pathname.startsWith('/optimizations') ? 'active' : ''}`}
-              onClick={closeMenu}
-            >
-              Optimizations
-            </Link>
-          </div>
+          {location.pathname === '/' && !currentUser ? (
+            <div className="navbar-user">
+              <Link to="/login" className="navbar-link" onClick={closeMenu}>Login</Link>
+              <Link to="/register" className="navbar-link" onClick={closeMenu}>Register</Link>
+            </div>
+          ) : (
+            <>
+              <div className="navbar-links">
+                <Link 
+                  to="/dashboard" 
+                  className={`navbar-link ${location.pathname === '/dashboard' ? 'active' : ''}`}
+                  onClick={closeMenu}
+                >
+                  Dashboard
+                </Link>
+                <Link 
+                  to="/vehicles" 
+                  className={`navbar-link ${location.pathname.startsWith('/vehicles') ? 'active' : ''}`}
+                  onClick={closeMenu}
+                >
+                  Vehicles
+                </Link>
+                <Link 
+                  to="/locations" 
+                  className={`navbar-link ${location.pathname.startsWith('/locations') ? 'active' : ''}`}
+                  onClick={closeMenu}
+                >
+                  Locations
+                </Link>
+                <Link 
+                  to="/optimizations" 
+                  className={`navbar-link ${location.pathname.startsWith('/optimizations') ? 'active' : ''}`}
+                  onClick={closeMenu}
+                >
+                  Optimizations
+                </Link>
+                <Link 
+                  to="/settings" 
+                  className={`navbar-link ${location.pathname.startsWith('/settings') ? 'active' : ''}`}
+                  onClick={closeMenu}
+                >
+                  Settings
+                </Link>
+              </div>
 
-          <div className="navbar-user">
-            {currentUser && (
-              <>
-                <div className="user-info">
-                  <FaUser className="user-icon" />
-                  <span className="user-name">{currentUser.name}</span>
-                </div>
-                <button className="logout-button" onClick={handleLogout}>
-                  <FaSignOutAlt />
-                  <span className="logout-text">Logout</span>
+              <div className="navbar-user">
+                <button className="btn btn-outline btn-sm" onClick={async () => {
+                  const newTheme = theme === 'light' ? 'dark' : 'light';
+                  toggleTheme();
+                  if (currentUser) {
+                    setSavingPrefs(true);
+                    try { await updateUserPreferences({ theme: newTheme }); } finally { setSavingPrefs(false); }
+                  }
+                }} aria-label="Toggle theme">
+                  {savingPrefs ? 'Saving...' : theme === 'light' ? 'Dark' : 'Light'}
                 </button>
-              </>
-            )}
-          </div>
+                <button className="btn btn-outline btn-sm" onClick={() => {
+                  // density toggle is local-only for now
+                  if (document.documentElement.classList.contains('density-compact')) {
+                    document.documentElement.classList.remove('density-compact');
+                    localStorage.setItem('app-density', 'comfortable');
+                  } else {
+                    document.documentElement.classList.add('density-compact');
+                    localStorage.setItem('app-density', 'compact');
+                  }
+                }} aria-label="Toggle density">
+                  Density
+                </button>
+                {currentUser ? (
+                  <>
+                    <div className="user-info">
+                      <FaUser className="user-icon" />
+                      <span className="user-name">Hi, {currentUser.name?.split(' ')[0] || 'User'}</span>
+                    </div>
+                    <button className="logout-button" onClick={handleLogout}>
+                      <FaSignOutAlt />
+                      <span className="logout-text">Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login" className="navbar-link" onClick={closeMenu}>Login</Link>
+                    <Link to="/register" className="navbar-link" onClick={closeMenu}>Register</Link>
+                  </>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </nav>

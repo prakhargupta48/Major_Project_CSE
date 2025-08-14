@@ -27,6 +27,21 @@
    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
  }
  
+ .locations-container .locations-list {
+  background: #fff;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 0.5rem 0.5rem 1rem;
+}
+
+.locations-table tbody tr.selected {
+  background-color: rgba(0, 98, 230, 0.06);
+}
+
+.locations-table tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+ 
  .locations-table {
    width: 100%;
    border-collapse: collapse;
@@ -37,6 +52,13 @@
    padding: 1rem;
    text-align: left;
    border-bottom: 1px solid #e9ecef;
+ }
+
+ .locations-table td:nth-child(2) {
+   max-width: 200px;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
  }
  
  .locations-table th {

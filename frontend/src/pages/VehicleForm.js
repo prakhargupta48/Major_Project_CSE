@@ -26,7 +26,7 @@ const VehicleForm = () => {
     try {
       setLoading(true);
       const response = await VehicleService.get(id);
-      const { name, capacity, count } = response.data;
+      const { name, capacity, count } = response;
       setFormData({ name, capacity: capacity.toString(), count: count.toString() });
     } catch (err) {
       setError('Failed to load vehicle data');
@@ -72,12 +72,12 @@ const VehicleForm = () => {
   }
 
   return (
-    <div className="form-container">
+    <div className="form-container container mx-auto px-6 py-8">
       <h1>{isEditMode ? 'Edit Vehicle' : 'Add Vehicle'}</h1>
 
       {error && <div className="alert alert-danger">{error}</div>}
 
-      <form onSubmit={onSubmit}>
+      <form onSubmit={onSubmit} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm max-w-xl">
         <div className="form-group">
           <label htmlFor="name">Vehicle Name</label>
           <input
@@ -117,10 +117,10 @@ const VehicleForm = () => {
           />
         </div>
         <div className="form-actions">
-          <button type="button" className="btn btn-secondary" onClick={() => navigate('/vehicles')}>
+          <button type="button" className="btn btn-secondary rounded-lg px-4 py-2" onClick={() => navigate('/vehicles')}>
             Cancel
           </button>
-          <button type="submit" className="btn btn-primary" disabled={loading}>
+          <button type="submit" className="btn btn-primary rounded-lg px-4 py-2" disabled={loading}>
             {loading ? 'Saving...' : 'Save Vehicle'}
           </button>
         </div>

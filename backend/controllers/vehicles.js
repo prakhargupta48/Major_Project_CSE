@@ -38,13 +38,14 @@ exports.getVehicleById = async (req, res) => {
 
 // Create vehicle
 exports.createVehicle = async (req, res) => {
-  const { name, capacity, count } = req.body;
+  const { name, capacity, count, maxDistance } = req.body;
   
   try {
     const newVehicle = new Vehicle({
       name,
       capacity,
       count,
+      maxDistance,
       user: req.user.id
     });
     
@@ -58,7 +59,7 @@ exports.createVehicle = async (req, res) => {
 
 // Update vehicle
 exports.updateVehicle = async (req, res) => {
-  const { name, capacity, count } = req.body;
+  const { name, capacity, count, maxDistance } = req.body;
   
   try {
     let vehicle = await Vehicle.findById(req.params.id);
@@ -77,6 +78,7 @@ exports.updateVehicle = async (req, res) => {
     vehicle.name = name || vehicle.name;
     vehicle.capacity = capacity || vehicle.capacity;
     vehicle.count = count || vehicle.count;
+    vehicle.maxDistance = maxDistance || vehicle.maxDistance;
     
     await vehicle.save();
     res.json(vehicle);
@@ -104,7 +106,7 @@ exports.deleteVehicle = async (req, res) => {
       return res.status(401).json({ msg: 'User not authorized' });
     }
     
-    await vehicle.remove();
+    await Vehicle.deleteOne({ _id: req.params.id, user: req.user.id });
     res.json({ msg: 'Vehicle removed' });
   } catch (err) {
     console.error(err.message);

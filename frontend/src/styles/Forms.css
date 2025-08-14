@@ -86,6 +86,63 @@
    color: #6c757d;
    font-style: italic;
  }
+
+ .location-options {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   gap: 1rem;
+   margin-bottom: 1.5rem;
+   padding: 1rem;
+   background-color: #f8f9fa;
+   border-radius: 0.25rem;
+   border: 1px solid #e9ecef;
+ }
+
+ .option-divider {
+   color: #6c757d;
+   font-weight: 500;
+ }
+
+ .option-text {
+   color: #495057;
+   font-weight: 500;
+ }
+
+ .search-section {
+   margin-bottom: 1.5rem;
+   padding: 1rem;
+   background-color: #f8f9fa;
+   border-radius: 0.25rem;
+   border: 1px solid #e9ecef;
+ }
+
+ .form-help {
+   display: block;
+   margin-top: 0.25rem;
+   font-size: 0.875rem;
+   color: #6c757d;
+ }
+
+ .form-group textarea {
+   resize: vertical;
+   min-height: 80px;
+ }
+
+ .form-group input[readonly] {
+   background-color: #e9ecef;
+   cursor: not-allowed;
+ }
+
+ .geocoding-indicator {
+   color: #0062E6;
+   font-weight: 500;
+   margin-left: 0.5rem;
+ }
+
+ .geocoding-indicator i {
+   margin-right: 0.25rem;
+ }
  
  @media (max-width: 768px) {
    .form-container {
@@ -108,5 +165,15 @@
    
    .map-container {
      height: 300px;
+   }
+
+   .location-options {
+     flex-direction: column;
+     gap: 0.5rem;
+     text-align: center;
+   }
+
+   .option-divider {
+     display: none;
    }
  }

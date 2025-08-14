@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const RouteSchema = new mongoose.Schema({
-  vehicleId: {
+  vehicle: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Vehicle'
   },
@@ -17,7 +17,8 @@ const RouteSchema = new mongoose.Schema({
     demand: Number,
     order: Number
   }],
-  totalDistance: Number,
+  distance: Number,
+  duration: Number,
   totalCapacity: Number
 });
 
@@ -31,8 +32,27 @@ const OptimizationSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  vehicles: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Vehicle'
+  }],
+  locations: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Location'
+  }],
   routes: [RouteSchema],
-  totalDistance: Number,
+  totalDistance: {
+    type: Number,
+    default: 0
+  },
+  totalDuration: {
+    type: Number,
+    default: 0
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
   date: {
     type: Date,
     default: Date.now

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   FaTruck, FaMapMarkerAlt, FaRoute, FaPlus, 
-  FaChartLine, FaCalendarAlt, FaClock, FaRoad 
+  FaCalendarAlt, FaClock, FaRoad 
 } from 'react-icons/fa';
 import VehicleService from '../services/vehicle.service';
 import LocationService from '../services/location.service';
@@ -57,15 +57,15 @@ const Dashboard = () => {
         // Set the most recent optimization as selected
         if (optimizationsData.length > 0) {
           const mostRecent = [...optimizationsData].sort(
-            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+            (a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
           )[0];
           setSelectedOptimization(mostRecent);
         }
         
         setError('');
       } catch (err) {
-        setError('Failed to load dashboard data');
-        console.error(err);
+        console.error('Dashboard fetch error:', err);
+        setError('Failed to load dashboard data. Please check your connection and try again.');
       } finally {
         setLoading(false);
       }
@@ -76,41 +76,51 @@ const Dashboard = () => {
 
   // Format date
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
   // Format distance
   const formatDistance = (distance) => {
-    if (!distance) return '0 km';
-    return `${(distance / 1000).toFixed(2)} km`;
+    const n = Number(distance ?? 0);
+    if (!isFinite(n) || n <= 0) return '0 km';
+    return `${n.toFixed(2)} km`;
   };
 
   // Get optimization locations
   const getOptimizationLocations = () => {
     if (!selectedOptimization) return [];
     
-    return selectedOptimization.locations.map(locId => {
-      // Handle both string IDs and object references
-      const id = typeof locId === 'object' ? locId._id : locId;
-      return locations.find(loc => loc._id === id);
-    }).filter(Boolean);
+    if (selectedOptimization.locations && Array.isArray(selectedOptimization.locations)) {
+      return selectedOptimization.locations.map(loc => {
+        // Handle both string IDs and object references
+        const id = typeof loc === 'object' ? loc._id : loc;
+        return locations.find(location => location._id === id);
+      }).filter(Boolean);
+    }
+    
+    return [];
   };
 
   // Get optimization vehicles
   const getOptimizationVehicles = () => {
     if (!selectedOptimization) return [];
     
-    return selectedOptimization.vehicles.map(vehId => {
-      // Handle both string IDs and object references
-      const id = typeof vehId === 'object' ? vehId._id : vehId;
-      return vehicles.find(veh => veh._id === id);
-    }).filter(Boolean);
+    if (selectedOptimization.vehicles && Array.isArray(selectedOptimization.vehicles)) {
+      return selectedOptimization.vehicles.map(veh => {
+        // Handle both string IDs and object references
+        const id = typeof veh === 'object' ? veh._id : veh;
+        return vehicles.find(vehicle => vehicle._id === id);
+      }).filter(Boolean);
+    }
+    
+    return [];
   };
 
   return (
-    <div className="dashboard">
-      <div className="container">
+    <div className="dashboard bg-gray-50 dark:bg-gray-950 min-h-screen">
+      <div className="container mx-auto px-6 py-8">
         {loading ? (
           <div className="loading-container">
             <div className="spinner-large"></div>
@@ -129,19 +139,19 @@ const Dashboard = () => {
           </div>
         ) : (
           <>
-            <div className="dashboard-header">
+            <div className="dashboard-header" data-aos="fade-up">
               <div className="dashboard-title">
                 <h1>Dashboard</h1>
-                <p>Welcome back! Here's an overview of your route optimization data.</p>
+                <p>Welcome back{selectedOptimization ? '' : ','}! Here's an overview of your route optimization data.</p>
               </div>
               <div className="dashboard-actions">
-                <Link to="/optimizations/new" className="btn btn-primary">
+                <Link to="/optimizations/new" className="btn btn-primary rounded-lg px-4 py-2">
                   <FaPlus /> New Optimization
                 </Link>
               </div>
             </div>
             
-            <div className="dashboard-stats">
+            <div className="dashboard-stats" data-aos="fade-up">
               <div className="stat-card" data-aos="fade-up">
                 <div className="stat-icon">
                   <FaTruck />
@@ -187,10 +197,10 @@ const Dashboard = () => {
             </div>
             
             {selectedOptimization ? (
-              <div className="dashboard-recent" data-aos="fade-up">
+              <div className="dashboard-recent rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow" data-aos="fade-up">
                 <div className="recent-header">
                   <h2>Latest Optimization</h2>
-                  <Link to={`/optimizations/${selectedOptimization._id}`} className="btn btn-outline">
+                  <Link to={`/optimizations/${selectedOptimization._id}`} className="btn btn-outline rounded-lg px-4 py-2">
                     View Details
                   </Link>
                 </div>
@@ -199,7 +209,7 @@ const Dashboard = () => {
                   <div className="recent-info">
                     <div className="recent-info-item">
                       <FaCalendarAlt />
-                      <span>Created: {formatDate(selectedOptimization.createdAt)}</span>
+                      <span>Created: {formatDate(selectedOptimization.createdAt || selectedOptimization.date)}</span>
                     </div>
                     <div className="recent-info-item">
                       <FaRoad />
@@ -211,11 +221,11 @@ const Dashboard = () => {
                     </div>
                     <div className="recent-info-item">
                       <FaTruck />
-                      <span>Vehicles: {selectedOptimization.vehicles.length}</span>
+                      <span>Vehicles: {selectedOptimization.vehicles ? selectedOptimization.vehicles.length : 0}</span>
                     </div>
                     <div className="recent-info-item">
                       <FaMapMarkerAlt />
-                      <span>Locations: {selectedOptimization.locations.length}</span>
+                      <span>Locations: {selectedOptimization.locations ? selectedOptimization.locations.length : 0}</span>
                     </div>
                   </div>
                   
@@ -235,7 +245,7 @@ const Dashboard = () => {
                         const vehicle = vehicles.find(v => v._id === route.vehicle) || { name: 'Unknown Vehicle' };
                         
                         return (
-                          <div className="route-card" key={index}>
+                          <div className="route-card rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm card-hover" key={index}>
                             <div className="route-header">
                               <div className="route-color" style={{ backgroundColor: ['#FF5733', '#33FF57', '#3357FF', '#F033FF', '#FF33A8'][index % 5] }}></div>
                               <h4>{vehicle.name}</h4>
@@ -268,7 +278,7 @@ const Dashboard = () => {
                 </div>
                 <h2>No Optimizations Yet</h2>
                 <p>Create your first route optimization to see results here.</p>
-                <Link to="/optimizations/new" className="btn btn-primary">
+                <Link to="/optimizations/new" className="btn btn-primary rounded-lg px-4 py-2">
                   Create Optimization
                 </Link>
               </div>
@@ -285,30 +295,25 @@ const Dashboard = () => {
                   {vehicles.length === 0 ? (
                     <div className="no-data">
                       <p>No vehicles added yet</p>
-                      <Link to="/vehicles/new" className="btn btn-outline-sm">
+                      <Link to="/vehicles/add" className="btn btn-outline-sm rounded-lg px-3 py-1.5">
                         Add Vehicle
                       </Link>
                     </div>
                   ) : (
-                    <div className="vehicles-grid">
-                      {vehicles.slice(0, 3).map(vehicle => (
-                        <div className="vehicle-card" key={vehicle._id}>
-                          <div className="vehicle-icon">
-                            <FaTruck />
-                          </div>
-                          <div className="vehicle-details">
-                            <h3>{vehicle.name}</h3>
-                            <p>Capacity: {vehicle.capacity}</p>
-                            <p>Max Distance: {formatDistance(vehicle.maxDistance)}</p>
-                          </div>
+                    <div className="items-grid">
+                      {vehicles.slice(0, 4).map(vehicle => (
+                        <div className="item-card rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm card-hover" key={vehicle._id}>
+                          <div className="item-title">{vehicle.name}</div>
+                          <div className="item-subtitle">Capacity: {vehicle.capacity}</div>
+                          <Link to={`/vehicles/edit/${vehicle._id}`} className="btn btn-outline-sm rounded-lg px-3 py-1.5 mt-2">Edit</Link>
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
               </div>
-              
-              <div className="dashboard-section" data-aos="fade-up" data-aos-delay="100">
+
+              <div className="dashboard-section" data-aos="fade-up">
                 <div className="section-header">
                   <h2>Recent Locations</h2>
                   <Link to="/locations" className="btn btn-text">View All</Link>
@@ -318,34 +323,19 @@ const Dashboard = () => {
                   {locations.length === 0 ? (
                     <div className="no-data">
                       <p>No locations added yet</p>
-                      <Link to="/locations/new" className="btn btn-outline-sm">
+                      <Link to="/locations/add" className="btn btn-outline-sm rounded-lg px-3 py-1.5">
                         Add Location
                       </Link>
                     </div>
                   ) : (
-                    <div className="locations-table">
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>Name</th>
-                            <th>Address</th>
-                            <th>Type</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {locations.slice(0, 5).map(location => (
-                            <tr key={location._id}>
-                              <td>{location.name}</td>
-                              <td>{location.address}</td>
-                              <td>
-                                <span className={`location-type ${location.isDepot ? 'depot' : 'destination'}`}>
-                                  {location.isDepot ? 'Depot' : 'Destination'}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                    <div className="items-grid">
+                      {locations.slice(0, 4).map(location => (
+                        <div className="item-card rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm card-hover" key={location._id}>
+                          <div className="item-title">{location.name}</div>
+                          <div className="item-subtitle">Demand: {location.demand || 0}</div>
+                          <Link to={`/locations/edit/${location._id}`} className="btn btn-outline-sm rounded-lg px-3 py-1.5 mt-2">Edit</Link>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
