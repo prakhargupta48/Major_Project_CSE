@@ -245,7 +245,7 @@ const Dashboard = () => {
                         const vehicle = vehicles.find(v => v._id === route.vehicle) || { name: 'Unknown Vehicle' };
                         
                         return (
-                          <div className="route-card rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm" key={index}>
+                          <div className="route-card rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm card-hover" key={index}>
                             <div className="route-header">
                               <div className="route-color" style={{ backgroundColor: ['#FF5733', '#33FF57', '#3357FF', '#F033FF', '#FF33A8'][index % 5] }}></div>
                               <h4>{vehicle.name}</h4>
@@ -300,25 +300,20 @@ const Dashboard = () => {
                       </Link>
                     </div>
                   ) : (
-                    <div className="vehicles-grid">
-                      {vehicles && vehicles.slice(0, 3).map(vehicle => (
-                        <div className="vehicle-card rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm" key={vehicle._id}>
-                          <div className="vehicle-icon">
-                            <FaTruck />
-                          </div>
-                          <div className="vehicle-details">
-                            <h3>{vehicle.name}</h3>
-                            <p>Capacity: {vehicle.capacity}</p>
-                            <p>Max Distance: {formatDistance(vehicle.maxDistance)}</p>
-                          </div>
+                    <div className="items-grid">
+                      {vehicles.slice(0, 4).map(vehicle => (
+                        <div className="item-card rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm card-hover" key={vehicle._id}>
+                          <div className="item-title">{vehicle.name}</div>
+                          <div className="item-subtitle">Capacity: {vehicle.capacity}</div>
+                          <Link to={`/vehicles/edit/${vehicle._id}`} className="btn btn-outline-sm rounded-lg px-3 py-1.5 mt-2">Edit</Link>
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
               </div>
-              
-              <div className="dashboard-section" data-aos="fade-up" data-aos-delay="100">
+
+              <div className="dashboard-section" data-aos="fade-up">
                 <div className="section-header">
                   <h2>Recent Locations</h2>
                   <Link to="/locations" className="btn btn-text">View All</Link>
@@ -333,29 +328,14 @@ const Dashboard = () => {
                       </Link>
                     </div>
                   ) : (
-                    <div className="locations-table">
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>Name</th>
-                            <th>Address</th>
-                            <th>Type</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {locations && locations.slice(0, 5).map(location => (
-                            <tr key={location._id} className="hover:bg-gray-50 dark:hover:bg-gray-900">
-                              <td>{location.name}</td>
-                              <td>{location.address || 'N/A'}</td>
-                              <td>
-                                <span className={`location-type ${location.isDepot ? 'depot' : 'destination'}`}>
-                                  {location.isDepot ? 'Depot' : 'Destination'}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                    <div className="items-grid">
+                      {locations.slice(0, 4).map(location => (
+                        <div className="item-card rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm card-hover" key={location._id}>
+                          <div className="item-title">{location.name}</div>
+                          <div className="item-subtitle">Demand: {location.demand || 0}</div>
+                          <Link to={`/locations/edit/${location._id}`} className="btn btn-outline-sm rounded-lg px-3 py-1.5 mt-2">Edit</Link>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

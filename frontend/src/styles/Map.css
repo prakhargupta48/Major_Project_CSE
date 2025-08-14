@@ -270,3 +270,9 @@
   box-shadow: var(--shadow-sm);
   backdrop-filter: blur(6px);
 }
+
+@media (max-width: 768px) {
+  .map-toolbar { right: 8px !important; top: 8px !important; }
+  .map-toolbar .btn { padding: 4px 8px; font-size: 12px; }
+  .map-toolbar .card { width: 200px; }
+}

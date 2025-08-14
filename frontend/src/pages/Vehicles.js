@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import VehicleService from '../services/vehicle.service';
 import '../styles/Vehicles.css';
+import { useToast } from '../components/ToastProvider';
 
 const Vehicles = () => {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { notify } = useToast();
 
   useEffect(() => {
     fetchVehicles();
@@ -18,8 +20,10 @@ const Vehicles = () => {
       const response = await VehicleService.getAll();
       setVehicles(response || []);
       setError('');
+      notify('Vehicles loaded', 'success', { autoClose: 1200 });
     } catch (err) {
       setError('Failed to load vehicles');
+      notify('Failed to load vehicles', 'error');
       console.error(err);
     } finally {
       setLoading(false);
@@ -31,26 +35,13 @@ const Vehicles = () => {
       await VehicleService.remove(id);
       setVehicles(vehicles.filter(vehicle => vehicle._id !== id));
       setError('');
+      notify('Vehicle deleted', 'success');
     } catch (err) {
-      setError('Failed to delete vehicle: ' + err.message);
+      const msg = err?.response?.data?.msg || ('Failed to delete vehicle: ' + err.message);
+      setError(msg);
+      notify(msg, 'error');
     }
   };
-
-  // const handleDelete = async (id) => {
-  //   if (window.confirm('Are you sure you want to delete this vehicle?')) {
-  //     try {
-  //       await VehicleService.remove(id);
-  //       setVehicles(vehicles.filter(vehicle =>  {
-  //     try {
-  //       await VehicleService.remove(id);
-  //       setVehicles(vehicles.filter(vehicle => vehicle._id !== id));
-  //       setError('');
-  //     } catch (err) {
-  //       setError('Failed to delete vehicle');
-  //       console.error(err);
-  //     }
-  //   }
-  // };
 
   if (loading) {
     return <div className="loading">Loading...</div>;
@@ -74,7 +65,7 @@ const Vehicles = () => {
       ) : (
         <div className="vehicles-grid">
           {vehicles && vehicles.map(vehicle => (
-            <div key={vehicle._id} className="vehicle-card rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm">
+            <div key={vehicle._id} className="vehicle-card rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm card-hover">
               <div className="vehicle-icon">
                 <i className="fas fa-truck"></i>
               </div>

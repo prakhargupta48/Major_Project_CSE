@@ -8,6 +8,7 @@ import { useToast } from '../components/ToastProvider';
 
 const Locations = () => {
   const [locations, setLocations] = useState([]);
+  const [previewLocations, setPreviewLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { notify } = useToast();
@@ -48,12 +49,14 @@ const Locations = () => {
     }
   };
 
+  const handleLocationSelect = ({ latitude, longitude, name }) => {
+    setPreviewLocations([{ _id: 'preview', name: name || 'Selected', latitude, longitude, demand: 0, isDepot: false }]);
+  };
+
   if (loading) {
     return (
-
       <div className="locations-container container mx-auto px-6 py-8">
         <div className="locations-header">
-
           <h1>Locations</h1>
           <Link to="/locations/add" className="btn btn-primary">
             <i className="fas fa-plus"></i> Add Location
@@ -74,10 +77,10 @@ const Locations = () => {
       </div>
 
       {error && <div className="alert alert-danger">{error}</div>}
-
-      {locations.length > 0 && (
+  
+      {(locations.length > 0 || previewLocations.length > 0) && (
         <div className="map-wrapper rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow">
-          <Map locations={locations} />
+          <Map locations={[...locations, ...previewLocations]} onLocationSelect={handleLocationSelect} />
         </div>
       )}
 

@@ -119,6 +119,9 @@ return (
         <button className="btn btn-secondary rounded-lg px-4 py-2" onClick={handleExport}>
           <i className="fas fa-download"></i> Export JSON
         </button>
+        <Link to={`/optimizations/${optimization._id}/print`} className="btn btn-outline rounded-lg px-4 py-2">
+          <i className="fas fa-print"></i> Print Route Sheets
+        </Link>
         <Link to="/optimizations" className="btn btn-primary rounded-lg px-4 py-2">
           Back to List
         </Link>
@@ -148,6 +151,55 @@ return (
           </p>
         </div>
       </div>
+      <div className="summary-card" data-aos="fade-up" data-aos-delay="150">
+        <div className="summary-icon">
+          <i className="fas fa-truck"></i>
+        </div>
+        <div className="summary-content">
+          <h3>Utilization</h3>
+          <p className="summary-value">
+            {(() => {
+              const vehCount = (optimization.vehicles || []).length || 1;
+              const used = new Set((optimization.routes || []).map(r => r.vehicle).filter(Boolean)).size;
+              return `${used}/${vehCount} vehicles used`;
+            })()}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div className="analytics-section mt-6 grid md:grid-cols-4 gap-4" data-aos="fade-up">
+      {(() => {
+        const routes = optimization.routes || [];
+        const distances = routes.map(r => Number((r.distance ?? r.totalDistance) ?? 0));
+        const totalStops = routes.reduce((s, r) => s + (r.stops?.length || 0), 0);
+        const totalDistance = distances.reduce((a, b) => a + b, 0);
+        const avgStops = routes.length ? (totalStops / routes.length) : 0;
+        const avgDistance = routes.length ? (totalDistance / routes.length) : 0;
+        const longestIdx = distances.indexOf(Math.max(...distances, 0));
+        const shortestIdx = distances.indexOf(Math.min(...distances, Infinity));
+        return (
+          <>
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm">
+              <div className="text-sm text-gray-600 dark:text-gray-400">Total Stops</div>
+              <div className="text-2xl font-bold">{totalStops}</div>
+            </div>
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm">
+              <div className="text-sm text-gray-600 dark:text-gray-400">Avg Stops/Route</div>
+              <div className="text-2xl font-bold">{avgStops.toFixed(1)}</div>
+            </div>
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm">
+              <div className="text-sm text-gray-600 dark:text-gray-400">Avg Distance/Route</div>
+              <div className="text-2xl font-bold">{avgDistance.toFixed(2)} km</div>
+            </div>
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm">
+              <div className="text-sm text-gray-600 dark:text-gray-400">Longest/Shortest</div>
+              <div className="text-sm">Longest: Route {longestIdx + 1}</div>
+              <div className="text-sm">Shortest: Route {shortestIdx + 1}</div>
+            </div>
+          </>
+        );
+      })()}
     </div>
 
     <div className="map-wrapper" data-aos="fade-up">
