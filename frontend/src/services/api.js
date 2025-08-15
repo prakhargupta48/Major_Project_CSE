@@ -1,7 +1,10 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
 
+
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://complexrouteoptimization.onrender.com/api'
+  : 'http://localhost:5000/api';
 // Create axios instance
 const api = axios.create({
   baseURL: API_URL,

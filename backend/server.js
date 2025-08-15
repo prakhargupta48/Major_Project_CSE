@@ -9,9 +9,12 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 
-// Middleware
-app.use(cors());
+// Middleware// backend/server.js
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://complexrouteoptimizer.netlify.app']
+}));
 app.use(express.json());
+
 
 // Import routes
 const authRoutes = require('./routes/auth');
