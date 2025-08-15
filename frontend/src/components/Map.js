@@ -57,7 +57,7 @@ const Map = ({
   vehicles = [],
   onLocationSelect, 
   onMapClick,
-  center = [22.7196, 75.8577],
+  center = [22.7196, 75.8577], // Indore, India coordinates
   zoom = 13,
   height = "500px",
   useRoadNetwork = false,
@@ -129,7 +129,17 @@ const Map = ({
         </div>
       )}
 
-      <div className="map-toolbar" style={{ position: 'absolute', zIndex: 1000, right: 12, top: 12, display: 'flex', gap: 8, flexDirection: 'column', alignItems: 'flex-end' }}>
+      <div className="map-toolbar" style={{ 
+        position: 'absolute', 
+        zIndex: 1000, 
+        right: 12, 
+        top: 12, 
+        display: 'flex', 
+        gap: 8, 
+        flexDirection: 'column', 
+        alignItems: 'flex-end',
+        maxWidth: '200px'
+      }}>
         <button className="btn btn-outline btn-sm" onClick={() => setShowRoutes((v) => !v)}>
           {showRoutes ? 'Hide Routes' : 'Show Routes'}
         </button>
@@ -137,13 +147,19 @@ const Map = ({
           {showVehicles ? 'Hide Vehicles' : 'Show Vehicles'}
         </button>
         {showRoutes && hasRoutes && (
-          <div className="card card-hover" style={{ padding: 8, maxHeight: 260, overflow: 'auto' }}>
-            <div style={{ fontWeight: 600, marginBottom: 6 }}>Routes</div>
+          <div className="card card-hover bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700" style={{ 
+            padding: 8, 
+            maxHeight: 200, 
+            overflow: 'auto',
+            minWidth: '180px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+          }}>
+            <div style={{ fontWeight: 600, marginBottom: 6, color: '#1e293b' }} className="dark:text-white">Routes</div>
             {routes.map((route, idx) => (
               <label key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, cursor: 'pointer' }}>
                 <span style={{ width: 12, height: 12, borderRadius: 2, background: routeColors[idx % routeColors.length] }} />
                 <input type="checkbox" checked={!!routeVisibility[idx]} onChange={() => setRouteVisibility(prev => ({ ...prev, [idx]: !prev[idx] }))} />
-                <span style={{ fontSize: 12 }}>{(vehicles.find(v => v._id === route.vehicle)?.name) || route.vehicleName || `Route ${idx+1}`}</span>
+                <span style={{ fontSize: 12, color: '#475569' }} className="dark:text-slate-300">{(vehicles.find(v => v._id === route.vehicle)?.name) || route.vehicleName || `Route ${idx+1}`}</span>
               </label>
             ))}
           </div>

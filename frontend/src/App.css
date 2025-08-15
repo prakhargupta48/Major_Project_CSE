@@ -176,10 +176,41 @@ p {
   border-color: #3b82f6;
 }
 
+.dark .btn-outline {
+  color: #60a5fa;
+  border-color: #60a5fa;
+}
+
 .btn-outline:hover {
   background: #3b82f6;
   color: white;
   transform: translateY(-2px);
+}
+
+.dark .btn-outline:hover {
+  background: #60a5fa;
+  color: #0f172a;
+}
+
+.btn-text {
+  background: transparent;
+  color: #3b82f6;
+  border: none;
+  padding: 0.5rem 1rem;
+}
+
+.dark .btn-text {
+  color: #60a5fa;
+}
+
+.btn-text:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.dark .btn-text:hover {
+  background: rgba(96, 165, 250, 0.1);
+  color: #93c5fd;
 }
 
 .btn-sm {
