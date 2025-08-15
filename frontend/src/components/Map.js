@@ -65,6 +65,7 @@ const Map = ({
 }) => {
   const [mapInstance, setMapInstance] = useState(null);
   const [showRoutes, setShowRoutes] = useState(true);
+  const [showVehicles, setShowVehicles] = useState(true);
   const [routeVisibility, setRouteVisibility] = useState({});
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -131,6 +132,9 @@ const Map = ({
       <div className="map-toolbar" style={{ position: 'absolute', zIndex: 1000, right: 12, top: 12, display: 'flex', gap: 8, flexDirection: 'column', alignItems: 'flex-end' }}>
         <button className="btn btn-outline btn-sm" onClick={() => setShowRoutes((v) => !v)}>
           {showRoutes ? 'Hide Routes' : 'Show Routes'}
+        </button>
+        <button className="btn btn-outline btn-sm" onClick={() => setShowVehicles((v) => !v)}>
+          {showVehicles ? 'Hide Vehicles' : 'Show Vehicles'}
         </button>
         {showRoutes && hasRoutes && (
           <div className="card card-hover" style={{ padding: 8, maxHeight: 260, overflow: 'auto' }}>
@@ -295,7 +299,7 @@ const Map = ({
         })}
 
         {/* Vehicle markers at the start of each route */}
-        {showRoutes && routes && routes.map((route, index) => {
+        {showVehicles && showRoutes && routes && routes.map((route, index) => {
           if (!route.stops || route.stops.length < 2) return null;
 
           const firstStop = route.stops[0];

@@ -93,14 +93,64 @@ const RouteOptimizationDemo = () => {
                       </div>
                     ))}
 
-                    {/* Route Lines */}
+                    {/* Route Lines - Properly connecting locations */}
                     {currentStep >= 2 && (
                       <>
-                        <div className="absolute top-8 left-8 w-32 h-0.5 bg-orange-500 transform rotate-45 origin-left animate-pulse"></div>
-                        <div className="absolute top-16 left-24 w-32 h-0.5 bg-orange-500 transform rotate-12 origin-left animate-pulse"></div>
-                        <div className="absolute top-32 left-32 w-32 h-0.5 bg-orange-500 transform -rotate-12 origin-left animate-pulse"></div>
-                        <div className="absolute top-48 left-24 w-32 h-0.5 bg-orange-500 transform -rotate-45 origin-left animate-pulse"></div>
-                        <div className="absolute top-64 left-8 w-32 h-0.5 bg-orange-500 transform -rotate-90 origin-left animate-pulse"></div>
+                        {/* Depot to Location A */}
+                        <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                          <line 
+                            x1="48" y1="48" 
+                            x2="20%" y2="30%" 
+                            stroke="#f97316" 
+                            strokeWidth="3" 
+                            className="animate-draw-line"
+                          />
+                          {/* Location A to B */}
+                          <line 
+                            x1="20%" y1="30%" 
+                            x2="70%" y2="20%" 
+                            stroke="#3b82f6" 
+                            strokeWidth="3" 
+                            className="animate-draw-line"
+                            style={{ animationDelay: '0.5s' }}
+                          />
+                          {/* Location B to C */}
+                          <line 
+                            x1="70%" y1="20%" 
+                            x2="80%" y2="60%" 
+                            stroke="#3b82f6" 
+                            strokeWidth="3" 
+                            className="animate-draw-line"
+                            style={{ animationDelay: '1s' }}
+                          />
+                          {/* Location C to D */}
+                          <line 
+                            x1="80%" y1="60%" 
+                            x2="30%" y2="70%" 
+                            stroke="#3b82f6" 
+                            strokeWidth="3" 
+                            className="animate-draw-line"
+                            style={{ animationDelay: '1.5s' }}
+                          />
+                          {/* Location D to E */}
+                          <line 
+                            x1="30%" y1="70%" 
+                            x2="60%" y2="80%" 
+                            stroke="#3b82f6" 
+                            strokeWidth="3" 
+                            className="animate-draw-line"
+                            style={{ animationDelay: '2s' }}
+                          />
+                          {/* Location E back to Depot */}
+                          <line 
+                            x1="60%" y1="80%" 
+                            x2="48" y2="48" 
+                            stroke="#f97316" 
+                            strokeWidth="3" 
+                            className="animate-draw-line"
+                            style={{ animationDelay: '2.5s' }}
+                          />
+                        </svg>
                       </>
                     )}
 
@@ -492,26 +542,26 @@ const Home = () => {
           <div className="grid md:grid-cols-4 gap-8">
             {[
               { step: 1, title: 'Add Vehicles', description: 'Enter your vehicle details including capacity and type' },
-              { step: 2, title: 'Add Locations', description: 'Add delivery locations with thier demand using our interactive map' },
+              { step: 2, title: 'Add Locations', description: 'Add delivery locations with their demand using our interactive map' },
               { step: 3, title: 'Optimize Routes', description: 'Generate optimized routes with a single click' },
               { step: 4, title: 'Start Delivering', description: 'Follow the optimized routes and save time and fuel' }
             ].map((item, index) => (
               <div key={item.step} className="relative animate-on-scroll" style={{animationDelay: `${index * 0.4}s`}}>
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-6">
+                  <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-6 relative z-20">
                     {item.step}
-          </div>
+                  </div>
                   <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
                     {item.title}
                   </h3>
                   <p className="text-slate-600 dark:text-slate-300">
                     {item.description}
                   </p>
-        </div>
+                </div>
                 
-                {/* Connector Line */}
+                {/* Connector Line - Properly positioned */}
                 {index < 3 && (
-                  <div className="hidden md:block absolute top-8 left-full w-full h-0.5 bg-slate-300 dark:bg-slate-600 transform -translate-y-1/2 z-10"></div>
+                  <div className="hidden md:block absolute top-8 left-1/2 w-full h-0.5 bg-gradient-to-r from-blue-600 to-blue-400 transform -translate-y-1/2 z-10"></div>
                 )}
               </div>
             ))}
