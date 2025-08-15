@@ -8,12 +8,12 @@ import VehicleService from '../services/vehicle.service';
 import LocationService from '../services/location.service';
 import OptimizationService from '../services/optimization.service';
 import Map from '../components/Map';
+import { useToast } from '../components/ToastProvider';
 import '../styles/Dashboard.css';
 
 const Dashboard = () => {
   const [vehicles, setVehicles] = useState([]);
   const [locations, setLocations] = useState([]);
-  const [optimizations, setOptimizations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [stats, setStats] = useState({
@@ -23,6 +23,7 @@ const Dashboard = () => {
     totalDistance: 0
   });
   const [selectedOptimization, setSelectedOptimization] = useState(null);
+  const { notify } = useToast();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,7 +40,6 @@ const Dashboard = () => {
         
         // Fetch optimizations
         const optimizationsData = await OptimizationService.getAll();
-        setOptimizations(optimizationsData);
         
         // Calculate stats
         const totalDistance = optimizationsData.reduce(
@@ -63,16 +63,19 @@ const Dashboard = () => {
         }
         
         setError('');
+        notify('Dashboard loaded successfully', 'success', { autoClose: 2000 });
       } catch (err) {
         console.error('Dashboard fetch error:', err);
-        setError('Failed to load dashboard data. Please check your connection and try again.');
+        const errorMsg = 'Failed to load dashboard data. Please check your connection and try again.';
+        setError(errorMsg);
+        notify(errorMsg, 'error');
       } finally {
         setLoading(false);
       }
     };
     
     fetchData();
-  }, []);
+  }, [notify]);
 
   // Format date
   const formatDate = (dateString) => {

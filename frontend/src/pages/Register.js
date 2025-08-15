@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { useToast } from '../components/ToastProvider';
 import '../styles/Auth.css';
 
 const Register = () => {
@@ -13,6 +14,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { register } = useContext(AuthContext);
+  const { notify } = useToast();
   const navigate = useNavigate();
 
   const { name, email, password, password2 } = formData;
@@ -27,16 +29,21 @@ const Register = () => {
     setError('');
 
     if (password !== password2) {
-      setError('Passwords do not match');
+      const errorMsg = 'Passwords do not match';
+      setError(errorMsg);
+      notify(errorMsg, 'error');
       setLoading(false);
       return;
     }
 
     try {
       await register(name, email, password);
+      notify('Registration successful! Welcome to Route Optimizer!', 'success');
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.msg || 'Registration failed. Please try again.');
+      const errorMsg = err.response?.data?.msg || 'Registration failed. Please try again.';
+      setError(errorMsg);
+      notify(errorMsg, 'error');
     } finally {
       setLoading(false);
     }

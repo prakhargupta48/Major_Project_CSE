@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { useToast } from '../components/ToastProvider';
 import '../styles/Auth.css';
 
 const Login = () => {
@@ -11,6 +12,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { login } = useContext(AuthContext);
+  const { notify } = useToast();
   const navigate = useNavigate();
 
   const { email, password } = formData;
@@ -26,9 +28,12 @@ const Login = () => {
 
     try {
       await login(email, password);
+      notify('Login successful! Welcome back!', 'success');
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.msg || 'Login failed. Please try again.');
+      const errorMsg = err.response?.data?.msg || 'Login failed. Please try again.';
+      setError(errorMsg);
+      notify(errorMsg, 'error');
     } finally {
       setLoading(false);
     }

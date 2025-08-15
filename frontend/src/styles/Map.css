@@ -30,26 +30,41 @@
 }
 
 .custom-marker div {
-  width: 30px;
-  height: 30px;
+  width: 36px !important;
+  height: 36px !important;
   border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
   color: white;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   transition: transform 0.2s, box-shadow 0.2s;
+  border: 2px solid white;
 }
 
 .custom-marker div:hover {
   transform: scale(1.1);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
 }
 
 .custom-marker.depot div {
-  border-radius: 4px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #FF5733, #FF6B47);
 }
 
+.custom-marker.location div {
+  background: linear-gradient(135deg, #3357FF, #4A6FFF);
+}
+
+.custom-marker.vehicle div {
+  background: linear-gradient(135deg, #33FF57, #4AFF6B);
+}
+
+.custom-marker.numbered-stop div {
+  background: linear-gradient(135deg, #111827, #374151);
+}
+
+/* Route stop markers */
 .route-stop-marker div {
   width: 24px;
   height: 24px;
@@ -61,6 +76,13 @@
   font-weight: bold;
   font-size: 12px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Vehicle marker */
+.vehicle-marker div {
+  background: linear-gradient(135deg, #4A6FFF, #6B8FFF) !important;
+  border: 2px solid white !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
 }
 
 /* Popup styles */
@@ -100,179 +122,166 @@
 .location-popup p,
 .route-popup p,
 .stop-popup p {
-  margin: 5px 0;
+  margin: 0 0 8px 0;
+  color: #666;
   font-size: 14px;
+  line-height: 1.4;
+}
+
+.location-popup p:last-child,
+.route-popup p:last-child,
+.stop-popup p:last-child {
+  margin-bottom: 0;
+}
+
+/* Map toolbar */
+.map-toolbar {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.map-toolbar button {
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.map-toolbar button:hover {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+}
+
+/* Route visibility controls */
+.route-visibility-controls {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.route-visibility-controls label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.route-visibility-controls input[type="checkbox"] {
+  margin: 0;
+}
+
+.route-color-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  border: 1px solid #ddd;
+}
+
+/* Map attribution */
+.leaflet-control-attribution {
+  font-size: 11px;
   color: #666;
 }
 
-.coordinates {
-  font-size: 12px !important;
-  color: #888 !important;
-}
-
-.depot-label {
-  display: inline-block;
-  background-color: #FF5733;
-  color: white !important;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 12px !important;
-  margin-top: 8px !important;
-}
-
-/* Leaflet controls */
-.leaflet-control-zoom {
-  border: none !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
-}
-
-.leaflet-control-zoom a {
-  border-radius: 4px !important;
-  color: #333 !important;
-}
-
-.leaflet-control-zoom-in {
-  border-bottom: 1px solid #e9ecef !important;
-}
-
-/* Animation for markers */
-@keyframes dropIn {
-  0% {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.leaflet-marker-icon {
-  animation: dropIn 0.3s ease-out forwards;
-}
-
-
-/* Add to client/src/styles/Map.css */
-
-/* Route animation */
-@keyframes drawRoute {
-  0% {
-    stroke-dashoffset: 1000;
-  }
-  100% {
-    stroke-dashoffset: 0;
-  }
-}
-
-.leaflet-polyline {
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 1000;
-  animation: drawRoute 2s ease-in-out forwards;
-}
-
-/* Vehicle marker animation */
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.vehicle-marker {
-  animation: pulse 2s infinite;
-}
-
-
-/* Route animation */
-@keyframes drawRoute {
-  0% {
-    stroke-dashoffset: 1000;
-  }
-  100% {
-    stroke-dashoffset: 0;
-  }
-}
-
-.leaflet-polyline {
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 1000;
-  animation: drawRoute 2s ease-in-out forwards;
-}
-
-/* Vehicle marker animation */
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.vehicle-marker {
-  animation: pulse 2s infinite;
-}
-
-
-
-
-
-
-.vehicle-marker div {
-  display: flex;
-  align-items: center;
-  background-color: white;
-  border-radius: 20px;
-  padding: 5px 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  white-space: nowrap;
-}
-
-.vehicle-marker i {
-  margin-right: 5px;
-}
-
-.vehicle-name {
-  font-size: 12px;
-  font-weight: bold;
+/* Dark theme support */
+.dark .map-toolbar button {
+  background: #374151;
+  border-color: #4B5563;
   color: white;
 }
 
-.vehicle-popup h3 {
-  margin: 0 0 10px 0;
-  color: #333;
-  font-size: 16px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 8px;
+.dark .map-toolbar button:hover {
+  background: #4B5563;
 }
 
-.vehicle-popup p {
-  margin: 5px 0;
-  font-size: 14px;
-  color: #666;
+.dark .route-visibility-controls {
+  background: #374151;
+  border-color: #4B5563;
+  color: white;
 }
 
-.map-toolbar .btn {
-  box-shadow: var(--shadow-sm);
-  backdrop-filter: blur(6px);
+.dark .route-visibility-controls label {
+  color: white;
 }
 
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .map-toolbar { right: 8px !important; top: 8px !important; }
-  .map-toolbar .btn { padding: 4px 8px; font-size: 12px; }
-  .map-toolbar .card { width: 200px; }
+  .map-search-container {
+    max-width: calc(100% - 40px);
+  }
+  
+  .map-toolbar {
+    top: 10px;
+    right: 10px;
+  }
+  
+  .map-toolbar button {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Animation for markers */
+@keyframes markerPulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.custom-marker.depot div {
+  animation: markerPulse 2s infinite;
+}
+
+.custom-marker.location div {
+  animation: markerPulse 2s infinite 0.5s;
+}
+
+/* Hover effects */
+.custom-marker:hover div {
+  animation: none;
+  transform: scale(1.2);
+  z-index: 1000;
+}
+
+/* Ensure markers are above other map elements */
+.leaflet-marker-icon {
+  z-index: 500 !important;
+}
+
+.custom-marker {
+  z-index: 600 !important;
+}
+
+.custom-marker.depot {
+  z-index: 700 !important;
+}
+
+.custom-marker.numbered-stop {
+  z-index: 650 !important;
+}
+
+.vehicle-marker {
+  z-index: 800 !important;
 }

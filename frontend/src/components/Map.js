@@ -8,34 +8,15 @@ import LocationSearch from './LocationSearch';
 import '../styles/Map.css';
 import { useTheme } from '../context/ThemeContext';
 
-const svgPin = (fill) => (
-  `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-     <path d="M12 2C8.686 2 6 4.686 6 8c0 4.5 6 12 6 12s6-7.5 6-12c0-3.314-2.686-6-6-6z" fill="${fill}" stroke="#ffffff" stroke-width="1"/>
-     <circle cx="12" cy="8.5" r="2.5" fill="white"/>
-   </svg>`
-);
-
-const svgTruck = (fill) => (
-  `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-     <rect x="2" y="7" width="11" height="8" rx="1" fill="${fill}" stroke="#ffffff" stroke-width="0.75"/>
-     <path d="M13 9h4l3 3v3h-7V9z" fill="${fill}" stroke="#ffffff" stroke-width="0.75"/>
-     <circle cx="6" cy="17" r="2" fill="#ffffff"/>
-     <circle cx="18" cy="17" r="2" fill="#ffffff"/>
-   </svg>`
-);
-
-const svgFlag = (fill) => (
-  `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-     <path d="M6 2v20" stroke="#ffffff" stroke-width="2"/>
-     <path d="M6 3h11l-3 4 3 4H6V3z" fill="${fill}" stroke="#ffffff" stroke-width="0.75"/>
-   </svg>`
-);
-
-const createCustomIcon = (color, type) => {
-  const iconSvg = svgPin(color);
+// Create custom icons for different location types (emoji-based for reliability)
+const createCustomIcon = (type, color) => {
   return L.divIcon({
     className: `custom-marker ${type}`,
-    html: `<div style="width:36px; height:36px; display:flex; align-items:center; justify-content:center;">${iconSvg}</div>`,
+    html: `<div style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; background: ${color}; border-radius: 50%; border: 2px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">
+              <span style="color: white; font-size: 18px; font-weight: bold;">
+                ${type === 'depot' ? '🏭' : type === 'vehicle' ? '🚛' : '📍'}
+              </span>
+            </div>`,
     iconSize: [36, 36],
     iconAnchor: [18, 36],
     popupAnchor: [0, -36]
@@ -43,12 +24,14 @@ const createCustomIcon = (color, type) => {
 };
 
 const createNumberedPinIcon = (color, number) => {
-  const pin = svgPin(color);
-  const badge = `<div style="position:absolute; bottom:-2px; right:-6px; background:#111827; color:#fff; font-size:12px; line-height:18px; width:18px; height:18px; border-radius:999px; text-align:center; border:2px solid #ffffff;">${number}</div>`;
-  const flag = `<div style="position:absolute; top:-2px; left:-2px;">${svgFlag('#111827')}</div>`;
   return L.divIcon({
     className: 'custom-marker numbered-stop',
-    html: `<div style="position:relative; width:36px; height:36px; display:flex; align-items:center; justify-content:center;">${pin}${flag}${badge}</div>`,
+    html: `<div style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; background: ${color}; border-radius: 50%; border: 2px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.4); position: relative;">
+              <span style="color: white; font-size: 16px; font-weight: bold;">${number}</span>
+              <div style="position: absolute; top: -2px; left: -2px; width: 20px; height: 20px; background: #111827; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center;">
+                <span style="color: white; font-size: 10px;">🚩</span>
+              </div>
+            </div>`,
     iconSize: [36, 36],
     iconAnchor: [18, 36],
     popupAnchor: [0, -36]
@@ -96,25 +79,6 @@ const Map = ({
     return vehicles.find(v => v._id === vehicleId) || { name: 'Unknown Vehicle' };
   };
 
-  // Format distance
-  const formatDistance = (distance) => {
-    const n = Number(distance ?? 0);
-    if (!isFinite(n) || n <= 0) return 'N/A';
-    return `${n.toFixed(2)} km`;
-  };
-
-  // Format duration
-  const formatDuration = (duration) => {
-    if (!duration) return 'N/A';
-    
-    const hours = Math.floor(duration / 3600);
-    const minutes = Math.floor((duration % 3600) / 60);
-    
-    return hours > 0 
-      ? `${hours} hr ${minutes} min` 
-      : `${minutes} min`;
-  };
-
   // Handle map click
   const handleMapClick = (e) => {
     if (onMapClick) {
@@ -139,6 +103,19 @@ const Map = ({
     : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
   const hasRoutes = Array.isArray(routes) && routes.length > 0;
+
+  // Ensure all locations are properly formatted
+  const validLocations = locations.filter(location => 
+    location && 
+    location.latitude && 
+    location.longitude && 
+    !isNaN(Number(location.latitude)) && 
+    !isNaN(Number(location.longitude))
+  );
+
+  // Debug logging
+  console.log('Map render - Locations:', validLocations.length, 'Routes:', routes.length);
+  console.log('Valid locations:', validLocations);
 
   return (
     <div className="map-wrapper" style={{ height }}>
@@ -184,32 +161,40 @@ const Map = ({
           attribution={tileAttribution}
         />
         
-        {/* Render locations as markers only when there are no routes */}
-        {!hasRoutes && locations && locations.map((location) => (
-          <Marker 
-            key={location._id || `temp-${location.latitude}-${location.longitude}`}
-            position={[Number(location.latitude), Number(location.longitude)]}
-            icon={createCustomIcon(
-              location.isDepot ? '#FF5733' : '#3357FF', 
-              location.isDepot ? 'depot' : 'location'
-            )}
-            zIndexOffset={500}
-          >
-            <Popup>
-              <div className="location-popup">
-                <h3>{location.name}</h3>
-                <p>{location.address}</p>
-                <p className="coordinates">
-                  <strong>Coordinates:</strong> {Number(location?.latitude ?? 0).toFixed(6)}, {Number(location?.longitude ?? 0).toFixed(6)}
-                </p>
-                {location.isDepot && <p className="depot-label">Depot</p>}
-                {location.demand > 0 && (
-                  <p><strong>Demand:</strong> {location.demand}</p>
-                )}
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+        {/* Always render ALL locations as markers - this fixes the issue */}
+        {validLocations.map((location, index) => {
+          console.log(`Rendering location ${index}:`, location.name, location.latitude, location.longitude);
+          const iconColor = location.isDepot ? '#FF5733' : '#3357FF';
+          return (
+            <Marker 
+              key={location._id || `temp-${location.latitude}-${location.longitude}`}
+              position={[Number(location.latitude), Number(location.longitude)]}
+              icon={createCustomIcon(
+                location.isDepot ? 'depot' : 'location',
+                iconColor
+              )}
+              zIndexOffset={500}
+            >
+              <Popup>
+                <div className="location-popup">
+                  <h3 className="font-bold text-lg mb-2">{location.name}</h3>
+                  {location.address && <p className="text-gray-600 mb-2">{location.address}</p>}
+                  <p className="text-sm text-gray-500 mb-2">
+                    <strong>Coordinates:</strong> {Number(location.latitude).toFixed(6)}, {Number(location.longitude).toFixed(6)}
+                  </p>
+                  {location.isDepot && (
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
+                      <span>🏭</span> Depot
+                    </div>
+                  )}
+                  {location.demand > 0 && (
+                    <p className="text-sm"><strong>Demand:</strong> {location.demand}</p>
+                  )}
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
         
         {/* Render routes as polylines with stop icons */}
         {showRoutes && routes && routes.map((route, index) => {
@@ -253,28 +238,28 @@ const Map = ({
                     <Marker
                       key={`route-${index}-start`}
                       position={[Number(firstLoc.latitude), Number(firstLoc.longitude)]}
-                      icon={createCustomIcon('#FF5733', 'depot')}
+                      icon={createCustomIcon('depot', '#FF5733')}
                       zIndexOffset={900}
                     >
                       <Popup>
                         <div className="stop-popup">
-                          <h3>Depot (Start)</h3>
-                          <p><strong>Vehicle:</strong> {vehicle.name}</p>
-                          <p className="coordinates"><strong>Coordinates:</strong> {Number(firstLoc.latitude).toFixed(6)}, {Number(firstLoc.longitude).toFixed(6)}</p>
+                          <h3 className="font-bold text-lg mb-2">🏭 Depot (Start)</h3>
+                          <p className="text-sm mb-1"><strong>Vehicle:</strong> {vehicle.name}</p>
+                          <p className="text-xs text-gray-500"><strong>Coordinates:</strong> {Number(firstLoc.latitude).toFixed(6)}, {Number(firstLoc.longitude).toFixed(6)}</p>
                         </div>
                       </Popup>
                     </Marker>
                     <Marker
                       key={`route-${index}-end`}
                       position={[Number(lastLoc.latitude), Number(lastLoc.longitude)]}
-                      icon={createCustomIcon('#FF5733', 'depot')}
+                      icon={createCustomIcon('depot', '#FF5733')}
                       zIndexOffset={900}
                     >
                       <Popup>
                         <div className="stop-popup">
-                          <h3>Depot (End)</h3>
-                          <p><strong>Vehicle:</strong> {vehicle.name}</p>
-                          <p className="coordinates"><strong>Coordinates:</strong> {Number(lastLoc.latitude).toFixed(6)}, {Number(lastLoc.longitude).toFixed(6)}</p>
+                          <h3 className="font-bold text-lg mb-2">🏭 Depot (End)</h3>
+                          <p className="text-sm mb-1"><strong>Vehicle:</strong> {vehicle.name}</p>
+                          <p className="text-xs text-gray-500"><strong>Coordinates:</strong> {Number(lastLoc.latitude).toFixed(6)}, {Number(lastLoc.longitude).toFixed(6)}</p>
                         </div>
                       </Popup>
                     </Marker>
@@ -297,9 +282,9 @@ const Map = ({
                   >
                     <Popup>
                       <div className="stop-popup">
-                        <h3>{stop.locationName || 'Stop'} (#{stopIndex})</h3>
-                        {stop.demand > 0 && <p><strong>Demand:</strong> {stop.demand}</p>}
-                        <p className="coordinates"><strong>Coordinates:</strong> {Number(loc.latitude).toFixed(6)}, {Number(loc.longitude).toFixed(6)}</p>
+                        <h3 className="font-bold text-lg mb-2">📍 {stop.locationName || 'Stop'} (#{stopIndex})</h3>
+                        {stop.demand > 0 && <p className="text-sm mb-1"><strong>Demand:</strong> {stop.demand}</p>}
+                        <p className="text-xs text-gray-500"><strong>Coordinates:</strong> {Number(loc.latitude).toFixed(6)}, {Number(loc.longitude).toFixed(6)}</p>
                       </div>
                     </Popup>
                   </Marker>
@@ -327,12 +312,19 @@ const Map = ({
               position={[Number(loc.latitude), Number(loc.longitude)]}
               icon={L.divIcon({
                 className: 'vehicle-marker',
-                html: `<div style="background-color: ${color}; padding: 4px 6px; border-radius: 999px; color: white; display: inline-flex; align-items: center; gap: 6px; font-size: 12px;">${svgTruck('#ffffff')}<span class="vehicle-name">${vehicle.name}</span></div>`,
-                iconSize: [100, 32],
-                iconAnchor: [50, 16]
+                html: `<div style="background: linear-gradient(135deg, ${color}, ${color}dd); padding: 6px 8px; border-radius: 999px; color: white; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 2px solid white;">🚛<span class="vehicle-name">${vehicle.name}</span></div>`,
+                iconSize: [120, 36],
+                iconAnchor: [60, 18]
               })}
               zIndexOffset={1000}
-            />
+            >
+              <Popup>
+                <div className="vehicle-popup">
+                  <h3 className="font-bold text-lg mb-2">🚛 {vehicle.name}</h3>
+                  <p className="text-sm text-gray-600">Route #{index + 1}</p>
+                </div>
+              </Popup>
+            </Marker>
           );
         })}
       </MapContainer>

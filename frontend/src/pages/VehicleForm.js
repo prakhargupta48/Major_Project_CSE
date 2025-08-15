@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import VehicleService from '../services/vehicle.service';
+import { useToast } from '../components/ToastProvider';
 import '../styles/Forms.css';
 
 const VehicleForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditMode = !!id;
+  const { notify } = useToast();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -16,25 +18,28 @@ const VehicleForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (isEditMode) {
-      fetchVehicle();
-    }
-  }, [id]);
-
-  const fetchVehicle = async () => {
+  const fetchVehicle = useCallback(async () => {
     try {
       setLoading(true);
       const response = await VehicleService.get(id);
       const { name, capacity, count } = response;
       setFormData({ name, capacity: capacity.toString(), count: count.toString() });
+      notify('Vehicle data loaded successfully', 'success', { autoClose: 2000 });
     } catch (err) {
-      setError('Failed to load vehicle data');
+      const errorMsg = 'Failed to load vehicle data';
+      setError(errorMsg);
+      notify(errorMsg, 'error');
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, notify]);
+
+  useEffect(() => {
+    if (isEditMode) {
+      fetchVehicle();
+    }
+  }, [isEditMode, fetchVehicle]);
 
   const onChange = e => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -54,13 +59,17 @@ const VehicleForm = () => {
 
       if (isEditMode) {
         await VehicleService.update(id, vehicleData);
+        notify('Vehicle updated successfully', 'success');
       } else {
         await VehicleService.create(vehicleData);
+        notify('Vehicle created successfully', 'success');
       }
 
       navigate('/vehicles');
     } catch (err) {
-      setError('Failed to save vehicle');
+      const errorMsg = 'Failed to save vehicle';
+      setError(errorMsg);
+      notify(errorMsg, 'error');
       console.error(err);
     } finally {
       setLoading(false);

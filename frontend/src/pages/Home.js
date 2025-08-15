@@ -1,171 +1,552 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaTruck, FaMapMarkedAlt, FaRoute, FaChartLine } from 'react-icons/fa';
+import { 
+  FaTruck, 
+  FaMapMarkedAlt, 
+  FaRoute, 
+  FaChartLine, 
+  FaRocket, 
+  FaUsers, 
+  FaGlobe,
+  FaArrowRight,
+  FaPlay,
+  FaStar,
+  FaBrain,
+  FaShieldAlt,
+  FaBolt,
+  FaNetworkWired,
+  FaMobile
+} from 'react-icons/fa';
 
-const Home = () => {
-  const heroLeftRef = useRef(null);
-  const heroRightRef = useRef(null);
-  const heroSectionRef = useRef(null);
+// Interactive Route Optimization Demo Component
+const RouteOptimizationDemo = () => {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+
+  const demoSteps = [
+    { name: 'Initial Setup', description: 'Multiple locations scattered across the map' },
+    { name: 'Route Calculation', description: 'AI algorithm calculating optimal paths' },
+    { name: 'Vehicle Assignment', description: 'Assigning routes to different vehicle types' },
+    { name: 'Optimization Complete', description: 'Final optimized routes with minimal distance' }
+  ];
 
   useEffect(() => {
-    const leftEl = heroLeftRef.current;
-    const rightEl = heroRightRef.current;
-    const sectionEl = heroSectionRef.current;
-    if (!leftEl || !rightEl || !sectionEl) return;
+    if (isPlaying) {
+      const interval = setInterval(() => {
+        setCurrentStep(prev => (prev + 1) % demoSteps.length);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [isPlaying, demoSteps.length]);
 
-    let rafId = 0;
-    let mouseX = 0;
-    let mouseY = 0;
+  const startDemo = () => {
+    setIsPlaying(true);
+    setCurrentStep(0);
+  };
 
-    const applyTransforms = () => {
-      const rect = sectionEl.getBoundingClientRect();
-      const scrollOffset = Math.max(0, -rect.top);
-      const leftY = scrollOffset * -0.04;
-      const rightY = scrollOffset * -0.08;
-
-      const leftX = (mouseX - rect.width / 2) * 0.01;
-      const rightX = (mouseX - rect.width / 2) * -0.008;
-      const leftTilt = (mouseY - rect.height / 2) * 0.0008;
-      const rightTilt = (mouseY - rect.height / 2) * -0.001;
-
-      leftEl.style.transform = `translate3d(${leftX}px, ${leftY}px, 0) rotateX(${leftTilt}deg)`;
-      rightEl.style.transform = `translate3d(${rightX}px, ${rightY}px, 0) rotateX(${rightTilt}deg)`;
-    };
-
-    const onScroll = () => {
-      cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(applyTransforms);
-    };
-
-    const onMouseMove = (e) => {
-      const rect = sectionEl.getBoundingClientRect();
-      mouseX = e.clientX - rect.left;
-      mouseY = e.clientY - rect.top;
-      cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(applyTransforms);
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    sectionEl.addEventListener('mousemove', onMouseMove);
-    onScroll();
-
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-      sectionEl.removeEventListener('mousemove', onMouseMove);
-      cancelAnimationFrame(rafId);
-    };
-  }, []);
+  const stopDemo = () => {
+    setIsPlaying(false);
+  };
 
   return (
-    <div className="min-h-screen animated-gradient">
-      {/* Navbar spacer */}
-      <div className="pt-6" />
+    <div className="route-demo-section bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white py-20">
+      <div className="container mx-auto px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            See Route Optimization in Action
+          </h2>
+          <p className="text-xl text-blue-200 max-w-3xl mx-auto">
+            Watch our AI algorithm transform scattered locations into perfectly optimized delivery routes
+          </p>
+        </div>
 
-      {/* Hero */}
-      <section className="relative" ref={heroSectionRef}>
-        <div className="container mx-auto px-6 py-20 md:py-28">
-          <div className="relative">
-            <div className="blob bg-white/40 dark:bg-teal-500/30 w-56 h-56 -top-10 -left-10" />
-            <div className="blob bg-white/30 dark:bg-blue-500/20 w-72 h-72 top-20 -right-10" />
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Demo Visualization */}
+          <div className="demo-visualization">
+            <div className="relative bg-slate-800 rounded-2xl p-8 border border-blue-500/30">
+              <div className="demo-canvas bg-slate-900 rounded-xl h-96 relative overflow-hidden">
+                {/* Animated Route Demo */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="demo-map relative w-full h-full">
+                    {/* Depot */}
+                    <div className="absolute top-8 left-8 w-6 h-6 bg-orange-500 rounded-lg flex items-center justify-center text-white text-xs font-bold animate-pulse">
+                      🏭
+                    </div>
+                    
+                    {/* Locations */}
+                    {[
+                      { x: '20%', y: '30%', name: 'A' },
+                      { x: '70%', y: '20%', name: 'B' },
+                      { x: '80%', y: '60%', name: 'C' },
+                      { x: '30%', y: '70%', name: 'D' },
+                      { x: '60%', y: '80%', name: 'E' }
+                    ].map((location, index) => (
+                      <div
+                        key={index}
+                        className={`absolute w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold transition-all duration-1000 ${
+                          currentStep >= 1 ? 'animate-bounce' : ''
+                        }`}
+                        style={{ left: location.x, top: location.y }}
+                      >
+                        {location.name}
+                      </div>
+                    ))}
+
+                    {/* Route Lines */}
+                    {currentStep >= 2 && (
+                      <>
+                        <div className="absolute top-8 left-8 w-32 h-0.5 bg-orange-500 transform rotate-45 origin-left animate-pulse"></div>
+                        <div className="absolute top-16 left-24 w-32 h-0.5 bg-orange-500 transform rotate-12 origin-left animate-pulse"></div>
+                        <div className="absolute top-32 left-32 w-32 h-0.5 bg-orange-500 transform -rotate-12 origin-left animate-pulse"></div>
+                        <div className="absolute top-48 left-24 w-32 h-0.5 bg-orange-500 transform -rotate-45 origin-left animate-pulse"></div>
+                        <div className="absolute top-64 left-8 w-32 h-0.5 bg-orange-500 transform -rotate-90 origin-left animate-pulse"></div>
+                      </>
+                    )}
+
+                    {/* Vehicle */}
+                    {currentStep >= 3 && (
+                      <div className="absolute top-8 left-8 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold animate-bounce">
+                        🚛
+                      </div>
+                    )}
+
+                    {/* Optimization Status */}
+                    <div className="absolute bottom-4 left-4 right-4 bg-slate-800/80 rounded-lg p-3">
+                      <div className="text-sm font-medium text-blue-300">
+                        {demoSteps[currentStep].name}
           </div>
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="reveal will-change-transform" id="hero-left" ref={heroLeftRef}>
-              <h1 className="text-white font-extrabold text-4xl md:text-6xl leading-tight drop-shadow-sm">
-                Optimize Your Delivery Routes
-              </h1>
-              <p className="mt-5 text-white/90 text-lg md:text-xl max-w-xl">
-                Save time and fuel by finding the most efficient routes for your fleet. Deliver more with less.
-              </p>
-              <div className="mt-8 flex flex-wrap gap-4">
-                <Link to="/register" className="inline-flex items-center justify-center rounded-lg bg-white text-primary font-semibold px-5 py-3 shadow hover:shadow-lg hover:-translate-y-0.5 transition">
-                  Get Started
-                </Link>
-                <Link to="/login" className="inline-flex items-center justify-center rounded-lg border border-white/70 text-white font-semibold px-5 py-3 hover:bg-white/10 transition">
-                  Log In
-                </Link>
+                      <div className="text-xs text-slate-400">
+                        {demoSteps[currentStep].description}
               </div>
             </div>
-            <div className="relative reveal will-change-transform" id="hero-right" ref={heroRightRef}>
-              <div className="aspect-[4/3] w-full rounded-2xl bg-white/20 backdrop-blur-md shadow-xl border border-white/30 flex items-center justify-center float-slow">
-                <img src="/images/hero-map.svg" alt="Route Map" className="w-11/12 h-auto" />
               </div>
             </div>
           </div>
 
-          {/* Partner marquee */}
-          <div className="mt-12 marquee">
-            <div className="marquee-track text-white/80">
-              <span>OpenStreetMap</span>
-              <span>•</span>
-              <span>OSRM</span>
-              <span>•</span>
-              <span>Leaflet</span>
-              <span>•</span>
-              <span>React</span>
-              <span>•</span>
-              <span>MongoDB</span>
-              <span>•</span>
-              <span>Node/Express</span>
-              <span>•</span>
-              <span>Tailwind CSS</span>
-              <span>•</span>
-              <span>React Router</span>
+              {/* Demo Controls */}
+              <div className="flex justify-center mt-6 space-x-4">
+                <button
+                  onClick={startDemo}
+                  disabled={isPlaying}
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 rounded-lg font-medium transition-colors"
+                >
+                  {isPlaying ? 'Running...' : 'Start Demo'}
+                </button>
+                <button
+                  onClick={stopDemo}
+                  disabled={!isPlaying}
+                  className="px-6 py-2 bg-red-600 hover:bg-red-700 disabled:bg-slate-600 rounded-lg font-medium transition-colors"
+                >
+                  Stop
+                </button>
+            </div>
+          </div>
+        </div>
+
+          {/* Demo Information */}
+          <div className="demo-info">
+            <div className="space-y-8">
+              <div className="demo-feature">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
+                    <FaBrain className="text-2xl" />
+                  </div>
+                  <h3 className="text-2xl font-bold">AI-Powered Optimization</h3>
+                </div>
+                <p className="text-blue-200 leading-relaxed">
+                  Our advanced algorithms analyze multiple factors including distance, traffic, vehicle capacity, and delivery windows to create the most efficient routes.
+                </p>
+              </div>
+
+              <div className="demo-feature">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center">
+                    <FaRoute className="text-2xl" />
+                  </div>
+                  <h3 className="text-2xl font-bold">Real-Time Updates</h3>
+                </div>
+                <p className="text-blue-200 leading-relaxed">
+                  Routes are continuously optimized based on real-time data, ensuring your deliveries are always on the most efficient path.
+                </p>
+              </div>
+
+              <div className="demo-feature">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center">
+                    <FaTruck className="text-2xl" />
+                  </div>
+                  <h3 className="text-2xl font-bold">Multi-Vehicle Support</h3>
+                </div>
+                <p className="text-blue-200 leading-relaxed">
+                  Handle complex logistics with multiple vehicles, each with different capacities and constraints, all optimized simultaneously.
+                </p>
+              </div>
+            </div>
+
+            {/* Demo Stats */}
+            <div className="grid grid-cols-3 gap-6 mt-12">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-400">25%</div>
+                <div className="text-sm text-slate-400">Distance Saved</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-400">40%</div>
+                <div className="text-sm text-slate-400">Time Reduced</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-400">30%</div>
+                <div className="text-sm text-slate-400">Cost Reduction</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+              </div>
+  );
+};
+
+const Home = () => {
+  const [isVisible, setIsVisible] = useState(false);
+  const heroRef = useRef(null);
+
+  useEffect(() => {
+    setIsVisible(true);
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animate-fade-in-up');
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    document.querySelectorAll('.animate-on-scroll').forEach((el) => {
+      observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const features = [
+    {
+      icon: <FaTruck className="text-4xl" />,
+      title: "Fleet Management",
+      description: "Easily manage your entire vehicle fleet with real-time tracking and optimization.",
+      color: "from-blue-600 to-blue-700",
+      details: "Track vehicle locations, monitor fuel consumption, and manage maintenance schedules all from one dashboard."
+    },
+    {
+      icon: <FaMapMarkedAlt className="text-4xl" />,
+      title: "Smart Location Tracking",
+      description: "Advanced mapping with intelligent location clustering and demand analysis.",
+      color: "from-slate-600 to-slate-700",
+      details: "Automatically cluster nearby locations, analyze delivery patterns, and optimize pickup sequences."
+    },
+    {
+      icon: <FaRoute className="text-4xl" />,
+      title: "Comlex Route Optimization",
+      description: "Machine learning algorithms that continuously improve route efficiency.",
+      color: "from-green-600 to-green-700",
+      details: "Our AI learns from historical data to predict traffic patterns and optimize routes in real-time."
+    },
+    {
+      icon: <FaChartLine className="text-4xl" />,
+      title: "Performance Analytics",
+      description: "Comprehensive insights and reports to optimize your operations.",
+      color: "from-orange-600 to-orange-700",
+      details: "Detailed analytics on delivery times, fuel consumption, driver performance, and cost analysis."
+    }
+  ];
+
+  const stats = [
+    { label: "Distance Saved", value: "25%", suffix: "avg.", icon: "📉" },
+    { label: "On-Time Deliveries", value: "98%", suffix: "", icon: "⏰" },
+    { label: "Active Users", value: "10K+", suffix: "", icon: "👥" },
+    { label: "Vehicles Optimized", value: "50K+", suffix: "", icon: "🚛" }
+  ];
+
+  const testimonials = [
+    {
+      quote: "This platform revolutionized our delivery operations. We're saving 30% on fuel costs and delivering 40% more packages on time.",
+      author: "Sara Patel",
+      role: "Operations Director",
+      company: "Express Logistics Co.",
+      rating: 5,
+      avatar: "SJ"
+    },
+    {
+      quote: "The AI optimization is incredibly accurate. We handle twice the volume without adding vehicles or drivers.",
+      author: "Abhishek Singh",
+      role: "Fleet Manager",
+      company: "Urban Delivery Solutions",
+      rating: 5,
+      avatar: "MC"
+    },
+    {
+      quote: "RouteOptimizer transformed our last-mile delivery. Customer satisfaction increased by 35% due to faster deliveries.",
+      author: "Devraj Parmar ",
+      role: "Customer Success Manager",
+      company: "Dev Daily Logistics - Blue Dart",
+      rating: 5,
+      avatar: "ER"
+    }
+  ];
+
+  const useCases = [
+    {
+      title: "Delhivery LTD",
+      description: "Optimize last-mile deliveries for faster customer satisfaction",
+      icon: "🛍️",
+      gradient: "from-blue-600 to-blue-700",
+      details: "Handle peak season demands, optimize delivery routes for more than 1000 locations, and reduce failed delivery attempts."
+    },
+    {
+      title: "FedEx Services",
+      description: "Plan technician routes to maximize daily appointments",
+      icon: "🔧",
+      gradient: "from-green-600 to-green-700",
+      details: "Schedule our complex route with ease which eventually enhance our performance and save time and fuel."
+    },
+    {
+      title: "Dev Logistics - BLue Dart",
+      description: "Consolidate shipments with intelligent capacity planning",
+      icon: "📦",
+      gradient: "from-slate-600 to-slate-700",
+      details: "Optimize warehouse operations, reduce transportation costs, and improve delivery reliability."
+    }
+  ];
+
+  const technicalFeatures = [
+    {
+      icon: <FaNetworkWired />,
+      title: "Real-Time Processing",
+      description: "Handle thousands of location updates per second with sub-millisecond response times."
+    },
+    {
+      icon: <FaShieldAlt />,
+      title: "Enterprise Security",
+      description: "Bank-level encryption, SOC 2 compliance, and role-based access control for your data."
+    },
+    {
+                      icon: <FaBolt />,
+      title: "High Performance",
+      description: "Optimized algorithms that can process complex routing problems in under 100ms."
+    },
+    {
+      icon: <FaMobile />,
+      title: "Mobile First",
+      description: "Responsive design that works perfectly on all devices, from phones to large displays."
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      {/* Hero Section */}
+      <section 
+        ref={heroRef}
+        className={`relative overflow-hidden pt-20 pb-32 transition-all duration-1000 ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        }`}
+      >
+        {/* Background Elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-float"></div>
+          <div className="absolute top-40 right-10 w-72 h-72 bg-slate-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-float" style={{animationDelay: '-2s'}}></div>
+          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-green-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-float" style={{animationDelay: '-4s'}}></div>
+            </div>
+
+        <div className="relative container mx-auto px-6">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="inline-flex items-center gap-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full px-6 py-3 mb-8 animate-fade-in-down border border-slate-200 dark:border-slate-600">
+              <FaRocket className="text-blue-600" />
+              <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                🚀 Now with AI-Powered Complex Route Optimization
+              </span>
+              </div>
+
+            <h1 className="text-5xl md:text-7xl font-black text-slate-900 dark:text-white mb-6 leading-tight animate-fade-in-up">
+              Optimize Your
+              <span className="block text-blue-600 dark:text-blue-400">
+                Delivery Routes
+              </span>
+            </h1>
+
+            <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-8 max-w-3xl mx-auto leading-relaxed animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+              Transform your logistics with intelligent route optimization. Save time, reduce costs, and deliver more with our AI-powered platform.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up" style={{animationDelay: '0.4s'}}>
+              <Link 
+                to="/register" 
+                className="group bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              >
+                Start Free Trial
+                <FaArrowRight className="inline-block ml-2 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              
+              <button className="group flex items-center gap-3 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300">
+                <div className="w-14 h-14 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow border border-slate-200 dark:border-slate-600">
+                  <FaPlay className="text-blue-600 ml-1" />
+            </div>
+                <span className="font-semibold">Watch Demo</span>
+              </button>
+              </div>
+
+            {/* Trust Indicators */}
+            <div className="mt-16 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Trusted by industry leaders</p>
+              <div className="flex justify-center items-center gap-8 opacity-60">
+                {['Blue Dart', 'FedEx', 'DHL','Delhivery LTD', 'Dev Daily Logistics','EcomExpress',].map((tech, index) => (
+                  <div key={tech} className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                    {tech}
+            </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-6 py-16 reveal">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center">Why Choose Our Platform?</h2>
-          <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow card-hover">
-              <div className="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-4">
-                <FaTruck />
+      {/* Interactive Demo Section */}
+      <RouteOptimizationDemo />
+
+      {/* Features Section */}
+      <section className="py-20 bg-white dark:bg-slate-900">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16 animate-on-scroll">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6">
+              Why Choose Our Platform?
+            </h2>
+            <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
+              Built with cutting-edge technology to deliver exceptional results for your business
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <div 
+                key={feature.title}
+                className="group animate-on-scroll"
+                style={{animationDelay: `${index * 0.1}s`}}
+              >
+                <div className="relative p-8 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+                  <div className={`w-16 h-16 bg-gradient-to-r ${feature.color} rounded-xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
+                    {feature.title}
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+                    {feature.description}
+                  </p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                    {feature.details}
+                  </p>
+                </div>
               </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Fleet Management</h3>
-              <p className="text-gray-600 dark:text-gray-300">Easily manage your entire vehicle fleet. Add, edit, and track details.</p>
-            </div>
-            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow card-hover">
-              <div className="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-4">
-                <FaMapMarkedAlt />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-20 bg-slate-100 dark:bg-slate-800">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <div 
+                key={stat.label}
+                className="text-center animate-on-scroll"
+                style={{animationDelay: `${index * 0.1}s`}}
+              >
+                <div className="text-4xl mb-2">{stat.icon}</div>
+                <div className="text-4xl md:text-5xl font-black text-slate-800 dark:text-white mb-2">
+                  {stat.value}
+                  {stat.suffix && <span className="text-2xl opacity-80">{stat.suffix}</span>}
+                  </div>
+                <div className="text-slate-600 dark:text-slate-300 font-medium">
+                  {stat.label}
+                </div>
               </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Location Tracking</h3>
-              <p className="text-gray-600 dark:text-gray-300">Add and manage delivery points with an interactive map.</p>
-            </div>
-            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow card-hover">
-              <div className="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-4">
-                <FaRoute />
-              </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Route Optimization</h3>
-              <p className="text-gray-600 dark:text-gray-300">Advanced algorithms calculate efficient routes that save costs.</p>
-            </div>
-            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow card-hover">
-              <div className="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-4">
-                <FaChartLine />
-              </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Performance Analytics</h3>
-              <p className="text-gray-600 dark:text-gray-300">Track and analyze delivery performance with clear insights.</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="bg-gray-50 dark:bg-gray-950">
-        <div className="container mx-auto px-6 py-16 reveal">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center">How It Works</h2>
-          <div className="mt-12 grid md:grid-cols-4 gap-6">
-            {[{
-              num: 1, title: 'Add Vehicles', text: 'Enter your vehicle details including capacity and type.'
-            }, { num: 2, title: 'Add Locations', text: 'Add delivery locations using our interactive map.' }, { num: 3, title: 'Optimize Routes', text: 'Generate optimized routes with a single click.' }, { num: 4, title: 'Start Delivering', text: 'Follow the optimized routes and save time and fuel.' }].map((s) => (
-              <div key={s.num} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm card-hover">
-                <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold">{s.num}</div>
-                <h3 className="mt-4 font-semibold text-gray-900 dark:text-white">{s.title}</h3>
-                <p className="mt-2 text-gray-600 dark:text-gray-300 text-sm">{s.text}</p>
+      <section className="py-20 bg-white dark:bg-slate-900">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16 animate-on-scroll">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6">
+              How It Works
+            </h2>
+            <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
+              Get started in minutes with our simple 4-step process
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-4 gap-8">
+            {[
+              { step: 1, title: 'Add Vehicles', description: 'Enter your vehicle details including capacity and type' },
+              { step: 2, title: 'Add Locations', description: 'Add delivery locations with thier demand using our interactive map' },
+              { step: 3, title: 'Optimize Routes', description: 'Generate optimized routes with a single click' },
+              { step: 4, title: 'Start Delivering', description: 'Follow the optimized routes and save time and fuel' }
+            ].map((item, index) => (
+              <div key={item.step} className="relative animate-on-scroll" style={{animationDelay: `${index * 0.4}s`}}>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-6">
+                    {item.step}
+          </div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
+                    {item.title}
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-300">
+                    {item.description}
+                  </p>
+        </div>
+                
+                {/* Connector Line */}
+                {index < 3 && (
+                  <div className="hidden md:block absolute top-8 left-full w-full h-0.5 bg-slate-300 dark:bg-slate-600 transform -translate-y-1/2 z-10"></div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Technical Features */}
+      <section className="py-20 bg-slate-50 dark:bg-slate-800">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16 animate-on-scroll">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6">
+              Built for Enterprise - 
+            </h2>
+            <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
+              Enterprise-grade technology that scales with your business 
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {technicalFeatures.map((feature, index) => (
+              <div 
+                key={feature.title}
+                className="text-center animate-on-scroll"
+                style={{animationDelay: `${index * 0.1}s`}}
+              >
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center text-white mx-auto mb-6">
+                  {feature.icon}
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
+                  {feature.title}
+                </h3>
+                <p className="text-slate-600 dark:text-slate-300">
+                  {feature.description}
+                </p>
               </div>
             ))}
           </div>
@@ -173,27 +554,43 @@ const Home = () => {
       </section>
 
       {/* Testimonials */}
-      <section className="bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-6 py-16 reveal">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center anim-fade-up">What Our Customers Say</h2>
-          <div className="mt-12 grid md:grid-cols-2 gap-6">
-            {[
-              {
-                quote: 'This platform reduced our delivery times by 30% and saved us thousands in fuel costs.',
-                author: 'Logistics Manager', company: 'Mid-sized Courier'
-              },
-              {
-                quote: 'The optimization is accurate — we handle more deliveries without adding vehicles.',
-                author: 'Operations Director', company: 'Regional Distributor'
-              }
-            ].map((t, i) => (
-              <div key={i} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow card-hover">
-                <p className="text-gray-700 dark:text-gray-200 italic">“{t.quote}”</p>
-                <div className="mt-4 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold">{t.author.split(' ').map(w => w[0]).slice(0,2).join('')}</div>
+      <section className="py-20 bg-white dark:bg-slate-900">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16 animate-on-scroll">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6">
+              What Our Customers Say
+            </h2>
+            <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
+              Join thousands of satisfied customers who have transformed their operations
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {testimonials.map((testimonial, index) => (
+              <div 
+                key={index}
+                className="bg-white dark:bg-slate-700 p-8 rounded-2xl border border-slate-200 dark:border-slate-600 animate-on-scroll shadow-sm"
+                style={{animationDelay: `${index * 0.2}s`}}
+              >
+                <div className="flex gap-1 mb-4">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <FaStar key={i} className="text-yellow-400" />
+                  ))}
+                </div>
+                <blockquote className="text-lg text-slate-700 dark:text-slate-200 mb-6 italic">
+                  "{testimonial.quote}"
+                </blockquote>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                    {testimonial.avatar}
+                  </div>
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">{t.author}</div>
-                    <div className="text-gray-600 dark:text-gray-300 text-sm">{t.company}</div>
+                    <div className="font-semibold text-slate-900 dark:text-white">
+                      {testimonial.author}
+                    </div>
+                    <div className="text-slate-600 dark:text-slate-400">
+                      {testimonial.role} at {testimonial.company}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -202,90 +599,111 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="bg-gray-50 dark:bg-gray-950">
-        <div className="container mx-auto px-6 py-16 text-center reveal">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">Ready to Optimize Your Routes?</h2>
-          <p className="mt-3 text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
-            Join businesses saving time and money with our route optimization platform.
-          </p>
-          <div className="mt-8">
-            <Link to="/register" className="inline-flex items-center justify-center rounded-lg bg-primary text-white font-semibold px-6 py-3 shadow hover:bg-primary-600 transition">
-              Get Started Now
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Platform Metrics */}
-      <section className="bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-6 py-16 reveal">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[{ label: 'Avg. Distance Saved', value: '25%' }, { label: 'On-Time Deliveries', value: '98%' }, { label: 'Users Worldwide', value: '10k+' }, { label: 'Vehicles Optimized', value: '50k+' }].map((m) => (
-              <div key={m.label} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 text-center shadow-sm card-hover">
-                <div className="text-3xl font-extrabold text-gray-900 dark:text-white">{m.value}</div>
-                <div className="mt-2 text-gray-600 dark:text-gray-300">{m.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Use Cases */}
-      <section className="bg-gray-50 dark:bg-gray-950">
-        <div className="container mx-auto px-6 py-16 reveal">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center">Built For Your Use Case</h2>
-          <div className="mt-12 grid md:grid-cols-3 gap-6">
-            {[{ title: 'E-commerce Delivery', text: 'Optimize last-mile deliveries to shorten routes and reduce fuel costs.' }, { title: 'Field Services', text: 'Plan technician routes to cover more appointments with less travel.' }, { title: 'B2B Logistics', text: 'Consolidate pickups and drop-offs with capacity-aware routing.' }].map((u) => (
-              <div key={u.title} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm card-hover">
-                <h3 className="font-semibold text-gray-900 dark:text-white">{u.title}</h3>
-                <p className="mt-2 text-gray-600 dark:text-gray-300 text-sm">{u.text}</p>
+      <section className="py-20 bg-slate-50 dark:bg-slate-800">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16 animate-on-scroll">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6">
+              Built For Your Use Case
+            </h2>
+            <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
+              Tailored solutions for different industries and business needs
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {useCases.map((useCase, index) => (
+              <div 
+                key={useCase.title}
+                className="group animate-on-scroll"
+                style={{animationDelay: `${index * 0.1}s`}}
+              >
+                <div className="bg-white dark:bg-slate-700 p-8 rounded-2xl border border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+                  <div className="text-4xl mb-4">{useCase.icon}</div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
+                    {useCase.title}
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-300 mb-4">
+                    {useCase.description}
+                  </p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {useCase.details}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Integrations */}
-      <section className="bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-6 py-16 reveal">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center anim-fade-up">Integrations</h2>
-          <p className="mt-3 text-gray-700 dark:text-gray-300 text-center max-w-2xl mx-auto anim-fade-up">Connect with mapping and routing providers to get real-world routes and travel times.</p>
-          <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-6 items-center">
-            {['OpenStreetMap', 'OSRM', 'Google Maps', 'CSV Import'].map((name) => (
-              <div key={name} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 text-center shadow-sm anim-fade-up card-hover">
-                <div className="text-gray-900 dark:text-white font-semibold">{name}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-6 py-16 reveal">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center anim-fade-up">Frequently Asked Questions</h2>
-          <div className="mt-10 grid md:grid-cols-2 gap-6">
-            {[{ q: 'Can I use real road routes?', a: 'Yes. Enable road network to use OSRM. For production, you can host OSRM or use Google Directions.' }, { q: 'Do you support vehicle capacity?', a: 'Yes. Our algorithms are capacity-aware and can handle multiple vehicles.' }, { q: 'Can I export the results?', a: 'Yes. Export JSON and we can add CSV/GPX if needed.' }, { q: 'Is there a free plan?', a: 'Yes. Start with the Starter tier to explore the platform.' }].map((f) => (
-              <div key={f.q} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm anim-fade-up card-hover">
-                <div className="font-semibold text-gray-900 dark:text-white">{f.q}</div>
-                <div className="mt-2 text-gray-600 dark:text-gray-300 text-sm">{f.a}</div>
-              </div>
-            ))}
+      {/* CTA Section */}
+      <section className="py-20 bg-blue-600 dark:bg-blue-700">
+        <div className="container mx-auto px-6 text-center">
+          <div className="max-w-4xl mx-auto animate-on-scroll">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Ready to Optimize Your Routes?
+            </h2>
+            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+              Join thousands of businesses saving time and money with our route optimization platform.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link 
+                to="/register" 
+                className="bg-white text-blue-600 px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              >
+                Start Free Trial
+              </Link>
+              <Link 
+                to="/login" 
+                className="border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-blue-600 transition-all duration-300"
+              >
+                Log In
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-50 dark:bg-gray-950">
-        <div className="container mx-auto px-6 py-10">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="text-gray-700 dark:text-gray-300">© {new Date().getFullYear()} RouteOptimizer. All rights reserved.</div>
-            <div className="flex gap-4 text-sm">
-              <Link to="/login" className="text-primary hover:text-primary-600">Login</Link>
-              <Link to="/register" className="text-primary hover:text-primary-600">Register</Link>
-              <Link to="/settings" className="text-primary hover:text-primary-600">Settings</Link>
+      <footer className="bg-slate-900 text-white py-16">
+        <div className="container mx-auto px-6">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div className="col-span-2">
+              <h3 className="text-2xl font-bold mb-4">RouteOptimizer</h3>
+              <p className="text-slate-400 mb-6 max-w-md">
+                Transform your logistics with AI-powered route optimization. Save time, reduce costs, and deliver more efficiently.
+              </p>
+              <div className="flex gap-4">
+                <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors cursor-pointer">
+                  <FaGlobe />
+                </div>
+                <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors cursor-pointer">
+                  <FaUsers />
             </div>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Product</h4>
+              <ul className="space-y-2 text-slate-400">
+                <li><Link to="/features" className="hover:text-white transition-colors">Features</Link></li>
+                <li><Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
+                <li><Link to="/api" className="hover:text-white transition-colors">API</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Company</h4>
+              <ul className="space-y-2 text-slate-400">
+                <li><Link to="/about" className="hover:text-white transition-colors">About</Link></li>
+                <li><Link to="/blog" className="hover:text-white transition-colors">Blog</Link></li>
+                <li><Link to="/careers" className="hover:text-white transition-colors">Careers</Link></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-slate-800 mt-12 pt-8 text-center text-slate-400">
+            <p>&copy; {new Date().getFullYear()} RouteOptimizer Team . All rights reserved.</p>
           </div>
         </div>
       </footer>
