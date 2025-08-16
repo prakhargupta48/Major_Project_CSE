@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 
 const ThemeContext = createContext({ theme: 'light', toggleTheme: () => {} });
 
@@ -16,9 +16,13 @@ export const ThemeProvider = ({ children }) => {
     localStorage.setItem('app-theme', theme);
   }, [theme]);
 
-  const toggleTheme = () => setTheme((t) => (t === 'light' ? 'dark' : 'light'));
+  const toggleTheme = useCallback(() => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    // Toast notification will be handled in the component that calls toggleTheme
+  }, [theme]);
 
-  const value = useMemo(() => ({ theme, toggleTheme }), [theme]);
+  const value = useMemo(() => ({ theme, toggleTheme }), [theme, toggleTheme]);
 
   return (
     <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

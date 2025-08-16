@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import VehicleService from '../services/vehicle.service';
 import LocationService from '../services/location.service';
 import OptimizationService from '../services/optimization.service';
 import Map from '../components/Map';
+import { useToast } from '../components/ToastProvider';
 import '../styles/NewOptimization.css';
 import { useAuth } from '../context/AuthContext';
 
 const NewOptimization = () => {
   const navigate = useNavigate();
   const { currentUser, updateUserPreferences } = useAuth();
+  const { notify } = useToast();
   const [name, setName] = useState('');
   const [vehicles, setVehicles] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -27,11 +29,7 @@ const NewOptimization = () => {
     }
   }, [currentUser]);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [vehiclesRes, locationsRes] = await Promise.all([
@@ -41,13 +39,20 @@ const NewOptimization = () => {
 
       setVehicles(vehiclesRes || []);
       setLocations(locationsRes || []);
+      notify('Data loaded successfully', 'success', { autoClose: 2000 });
     } catch (err) {
-      setError('Failed to load data');
+      const errorMsg = 'Failed to load data';
+      setError(errorMsg);
+      notify(errorMsg, 'error');
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [notify]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleVehicleSelect = (vehicleId) => {
     if (selectedVehicles.includes(vehicleId)) {
@@ -104,9 +109,12 @@ const NewOptimization = () => {
       const response = await OptimizationService.create(optimizationData);
       // persist default algorithm if different
       try { if (currentUser && currentUser?.preferences?.defaultAlgorithm !== algorithm) { await updateUserPreferences({ defaultAlgorithm: algorithm }); } } catch {}
+      notify('Route optimization completed successfully!', 'success');
       navigate(`/optimizations/${response._id}`);
     } catch (err) {
-      setError('Optimization failed. Please try again.');
+      const errorMsg = 'Optimization failed. Please try again.';
+      setError(errorMsg);
+      notify(errorMsg, 'error');
       console.error(err);
     } finally {
       setOptimizing(false);

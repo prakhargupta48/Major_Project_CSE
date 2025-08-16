@@ -10,8 +10,29 @@ const LocationSearch = ({ onLocationSelect, map }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [searchHistory, setSearchHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
   const searchRef = useRef(null);
   const geocoderRef = useRef(null);
+
+  // Load search history from localStorage on component mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('locationSearchHistory');
+    if (savedHistory) {
+      setSearchHistory(JSON.parse(savedHistory));
+    }
+  }, []);
+
+  // Save search to history
+  const saveToHistory = (searchTerm) => {
+    const newHistory = [
+      searchTerm,
+      ...searchHistory.filter(item => item !== searchTerm)
+    ].slice(0, 10); // Keep only last 10 searches
+    
+    setSearchHistory(newHistory);
+    localStorage.setItem('locationSearchHistory', JSON.stringify(newHistory));
+  };
 
   useEffect(() => {
     if (map && !geocoderRef.current) {
@@ -93,56 +114,94 @@ const LocationSearch = ({ onLocationSelect, map }) => {
       longitude: parseFloat(result.lon)
     };
     
+    // Save search term to history
+    saveToHistory(searchTerm);
+    
     onLocationSelect(location);
     setSearchResults([]);
     setSearchTerm('');
+    setShowHistory(false);
     
     // Fly to the location
     if (map) {
-      map.flyTo([location.latitude, location.longitude], 15);
+      map.setView([location.latitude, location.longitude], 15);
     }
   };
 
+  const handleHistorySelect = (historyItem) => {
+    setSearchTerm(historyItem);
+    setShowHistory(false);
+    handleSearch();
+  };
+
+  const clearHistory = () => {
+    setSearchHistory([]);
+    localStorage.removeItem('locationSearchHistory');
+  };
+
   return (
-    <div className="location-search">
-      <div className="search-container">
+    <div className="location-search-container" ref={searchRef}>
+      <div className="search-input-container">
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          onFocus={() => setShowHistory(true)}
+          onBlur={() => setTimeout(() => setShowHistory(false), 200)}
           placeholder="Search for a location..."
           className="search-input"
-          ref={searchRef}
-          onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
         />
         <button 
-          className="search-button" 
           onClick={handleSearch}
-          disabled={isLoading}
+          disabled={isLoading || !searchTerm.trim()}
+          className="search-button"
         >
-          {isLoading ? (
-            <span className="spinner"></span>
-          ) : (
-            <i className="fas fa-search"></i>
-          )}
+          {isLoading ? '🔍' : '🔍'}
         </button>
       </div>
-      
-      {error && <div className="search-error">{error}</div>}
-      
+
+      {/* Search History */}
+      {showHistory && searchHistory.length > 0 && (
+        <div className="search-history">
+          <div className="history-header">
+            <span>Recent Searches</span>
+            <button onClick={clearHistory} className="clear-history-btn">
+              Clear
+            </button>
+          </div>
+          {searchHistory.map((item, index) => (
+            <div
+              key={index}
+              className="history-item"
+              onClick={() => handleHistorySelect(item)}
+            >
+              <span className="history-icon">🕒</span>
+              <span className="history-text">{item}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Search Results */}
       {searchResults.length > 0 && (
-        <ul className="search-results">
-          {searchResults.map((result) => (
-            <li 
-              key={result.place_id} 
-              onClick={() => handleLocationSelect(result)}
+        <div className="search-results">
+          {searchResults.map((result, index) => (
+            <div
+              key={index}
               className="search-result-item"
+              onClick={() => handleLocationSelect(result)}
             >
               <div className="result-name">{result.display_name.split(',')[0]}</div>
               <div className="result-address">{result.display_name}</div>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
+      )}
+
+      {error && (
+        <div className="search-error">
+          {error}
+        </div>
       )}
     </div>
   );

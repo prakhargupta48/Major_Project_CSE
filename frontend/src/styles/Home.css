@@ -550,3 +550,59 @@
     transform: scale(1);
   }
 }
+
+/* Demo Line Drawing Animation */
+@keyframes drawLine {
+  from {
+    stroke-dasharray: 0 1000;
+  }
+  to {
+    stroke-dasharray: 1000 0;
+  }
+}
+
+.animate-draw-line {
+  stroke-dasharray: 0 1000;
+  animation: drawLine 1.5s ease-in-out forwards;
+}
+
+/* Demo Section Styles */
+.route-demo-section {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
+}
+
+.demo-visualization {
+  perspective: 1000px;
+}
+
+.demo-canvas {
+  transform-style: preserve-3d;
+  transition: all 0.5s ease;
+}
+
+.demo-map {
+  position: relative;
+}
+
+/* Location markers animation */
+@keyframes locationPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.demo-map .animate-bounce {
+  animation: locationPulse 2s ease-in-out infinite;
+}
+
+/* Vehicle animation */
+@keyframes vehicleMove {
+  0% { transform: translateX(0) translateY(0); }
+  25% { transform: translateX(20px) translateY(-10px); }
+  50% { transform: translateX(40px) translateY(0); }
+  75% { transform: translateX(20px) translateY(10px); }
+  100% { transform: translateX(0) translateY(0); }
+}
+
+.demo-map .animate-bounce {
+  animation: vehicleMove 3s ease-in-out infinite;
+}

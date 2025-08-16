@@ -1,17 +1,39 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { 
+  FaTachometerAlt, FaTruck, FaMapMarkerAlt, 
+  FaRoute, FaCog 
+} from 'react-icons/fa';
+import '../styles/BottomNav.css';
 
 const BottomNav = () => {
   const location = useLocation();
-  const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
-  if (!isMobile) return null;
+
+  const navItems = [
+    { path: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
+    { path: '/vehicles', label: 'Vehicles', icon: <FaTruck /> },
+    { path: '/locations', label: 'Locations', icon: <FaMapMarkerAlt /> },
+    { path: '/optimizations', label: 'Routes', icon: <FaRoute /> },
+    { path: '/settings', label: 'Settings', icon: <FaCog /> }
+  ];
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
-      <div className="grid grid-cols-4 text-center text-sm">
-        <Link to="/dashboard" className={`py-3 ${location.pathname === '/dashboard' ? 'text-primary' : 'text-gray-600 dark:text-gray-300'}`}>Dashboard</Link>
-        <Link to="/vehicles" className={`py-3 ${location.pathname.startsWith('/vehicles') ? 'text-primary' : 'text-gray-600 dark:text-gray-300'}`}>Vehicles</Link>
-        <Link to="/locations" className={`py-3 ${location.pathname.startsWith('/locations') ? 'text-primary' : 'text-gray-600 dark:text-gray-300'}`}>Locations</Link>
-        <Link to="/optimizations" className={`py-3 ${location.pathname.startsWith('/optimizations') ? 'text-primary' : 'text-gray-600 dark:text-gray-300'}`}>Routes</Link>
+    <nav className="bottom-nav md:hidden">
+      <div className="bottom-nav-container">
+        {navItems.map((item) => (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={`bottom-nav-item ${
+              location.pathname === item.path || location.pathname.startsWith(item.path)
+                ? 'active'
+                : ''
+            }`}
+          >
+            <span className="bottom-nav-icon">{item.icon}</span>
+            <span className="bottom-nav-label">{item.label}</span>
+          </Link>
+        ))}
       </div>
     </nav>
   );

@@ -8,12 +8,12 @@ import VehicleService from '../services/vehicle.service';
 import LocationService from '../services/location.service';
 import OptimizationService from '../services/optimization.service';
 import Map from '../components/Map';
+import { useToast } from '../components/ToastProvider';
 import '../styles/Dashboard.css';
 
 const Dashboard = () => {
   const [vehicles, setVehicles] = useState([]);
   const [locations, setLocations] = useState([]);
-  const [optimizations, setOptimizations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [stats, setStats] = useState({
@@ -23,6 +23,7 @@ const Dashboard = () => {
     totalDistance: 0
   });
   const [selectedOptimization, setSelectedOptimization] = useState(null);
+  const { notify } = useToast();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,7 +40,6 @@ const Dashboard = () => {
         
         // Fetch optimizations
         const optimizationsData = await OptimizationService.getAll();
-        setOptimizations(optimizationsData);
         
         // Calculate stats
         const totalDistance = optimizationsData.reduce(
@@ -63,16 +63,19 @@ const Dashboard = () => {
         }
         
         setError('');
+        notify('Dashboard loaded successfully', 'success', { autoClose: 2000 });
       } catch (err) {
         console.error('Dashboard fetch error:', err);
-        setError('Failed to load dashboard data. Please check your connection and try again.');
+        const errorMsg = 'Failed to load dashboard data. Please check your connection and try again.';
+        setError(errorMsg);
+        notify(errorMsg, 'error');
       } finally {
         setLoading(false);
       }
     };
     
     fetchData();
-  }, []);
+  }, [notify]);
 
   // Format date
   const formatDate = (dateString) => {
@@ -119,7 +122,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="dashboard bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 pb-20 md:pb-8">
       <div className="container mx-auto px-6 py-8">
         {loading ? (
           <div className="loading-container">

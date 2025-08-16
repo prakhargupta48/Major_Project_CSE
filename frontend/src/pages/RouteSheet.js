@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { QRCodeCanvas } from 'qrcode.react';
 import OptimizationService from '../services/optimization.service';
 
 const RouteSheet = () => {
@@ -25,7 +24,7 @@ const RouteSheet = () => {
 
   if (!optimization) return <div className="container mx-auto px-6 py-8">Loading...</div>;
 
-  const link = `${window.location.origin}/optimizations/${id}`;
+
 
   return (
     <div className="container mx-auto px-6 py-8">
@@ -39,8 +38,8 @@ const RouteSheet = () => {
                 <div className="text-lg font-semibold">Vehicle: {route.vehicleName || `Route ${idx+1}`}</div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Stops: {route.stops.length}</div>
               </div>
-              <div className="w-24 h-24">
-                <QRCodeCanvas value={link} size={96} includeMargin bgColor="#ffffff" fgColor="#111827" />
+              <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center text-gray-500 dark:text-gray-400 text-xs">
+                QR Code
               </div>
             </div>
             <ol className="list-decimal pl-5 space-y-1 text-sm">

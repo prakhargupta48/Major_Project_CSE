@@ -4,6 +4,7 @@ import LocationService from '../services/location.service';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import LocationSearch from '../components/LocationSearch';
+import { useToast } from '../components/ToastProvider';
 import '../styles/Forms.css';
 
 const LocationForm = () => {
@@ -13,6 +14,7 @@ const LocationForm = () => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
+  const { notify } = useToast();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -90,8 +92,11 @@ const LocationForm = () => {
         demand: (demand || 0).toString(),
         isDepot: isDepot || false
       });
+      notify('Location data loaded successfully', 'success', { autoClose: 2000 });
     } catch (err) {
-      setError('Failed to load location data');
+      const errorMsg = 'Failed to load location data';
+      setError(errorMsg);
+      notify(errorMsg, 'error');
       console.error(err);
     } finally {
       setLoading(false);
@@ -179,8 +184,11 @@ const LocationForm = () => {
       }
 
       navigate('/locations');
+      notify('Location saved successfully', 'success', { autoClose: 2000 });
     } catch (err) {
-      setError('Failed to save location');
+      const errorMsg = 'Failed to save location';
+      setError(errorMsg);
+      notify(errorMsg, 'error');
       console.error(err);
     } finally {
       setLoading(false);

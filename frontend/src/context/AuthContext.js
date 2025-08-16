@@ -68,15 +68,21 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     AuthService.logout();
     setCurrentUser(null);
+    // Note: Toast notification will be handled in the component that calls logout
   };
 
   const updateUserPreferences = async (prefs) => {
-    const res = await AuthService.updatePreferences(prefs);
-    setCurrentUser(res.data);
-    if (prefs.theme) {
-      document.documentElement.setAttribute('data-theme', prefs.theme);
+    try {
+      const res = await AuthService.updatePreferences(prefs);
+      setCurrentUser(res.data);
+      if (prefs.theme) {
+        document.documentElement.setAttribute('data-theme', prefs.theme);
+      }
+      return res.data;
+    } catch (err) {
+      console.error('Failed to update preferences:', err);
+      throw err;
     }
-    return res.data;
   };
 
   const value = {

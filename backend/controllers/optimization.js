@@ -345,7 +345,7 @@ function clarkeWrightAlgorithm(vehicles, locations, depot) {
     }
   }
 
-  // Assign vehicles greedily (largest demand first)
+  // Assign vehicles to routes based on capacity
   const vehicleSlots = [];
   vehicles.forEach((v) => {
     const count = v.count || 1;
@@ -353,19 +353,37 @@ function clarkeWrightAlgorithm(vehicles, locations, depot) {
       vehicleSlots.push({ _id: v._id, name: v.name, capacity: v.capacity || 0, used: false });
     }
   });
+  
+  // Sort routes by capacity (largest first) and vehicles by capacity (largest first)
   routes.sort((a, b) => (b.totalCapacity || 0) - (a.totalCapacity || 0));
   vehicleSlots.sort((a, b) => b.capacity - a.capacity);
 
+  // First pass: assign vehicles to routes that fit exactly
   for (const r of routes) {
     const slot = vehicleSlots.find((vs) => !vs.used && vs.capacity >= (r.totalCapacity || 0));
     if (slot) {
       r.vehicle = slot._id;
       r.vehicleName = slot.name;
       slot.used = true;
-    } else {
-      // Leave unassigned if no suitable slot
-      r.vehicle = undefined;
-      r.vehicleName = 'Unassigned';
+    }
+  }
+
+  // Second pass: assign remaining routes to any available vehicle (even if over capacity)
+  for (const r of routes) {
+    if (!r.vehicle) {
+      const slot = vehicleSlots.find((vs) => !vs.used);
+      if (slot) {
+        r.vehicle = slot._id;
+        r.vehicleName = slot.name;
+        slot.used = true;
+      } else {
+        // If no more vehicle slots, assign to the first vehicle (round-robin)
+        const firstVehicle = vehicles[0];
+        if (firstVehicle) {
+          r.vehicle = firstVehicle._id;
+          r.vehicleName = firstVehicle.name;
+        }
+      }
     }
   }
 

@@ -1,4 +1,4 @@
-# Route Optimization Platform – Architecture and Interview Prep
+# Route Optimization Platform  
 
 ## 1. Problem Statement and Goals
 - Build a full-stack platform to create, visualize, and manage optimized vehicle routes given vehicles, locations, and constraints.
@@ -103,33 +103,5 @@
 - Frontend as static build served by CDN.
 - CI/CD: lint, test, build, deploy.
 
-## 15. Common Interview Questions and Answers
-1) Q: Why Mongoose/MongoDB?  A: Flexible schema for nested routes; quick prototyping; Mongoose simplifies relations and validation.
-2) Q: Why Leaflet over Google Maps?  A: Open-source, free tiles (OSM), easier customization; can integrate Google Directions when needed.
-3) Q: How do you compute routes?  A: Initial solution via Clarke–Wright savings or Nearest Neighbor; refine with 2-opt and limited 3-opt.
-4) Q: How do you handle capacity constraints?  A: During merges and assignments, we check combined demand against vehicle capacity.
-5) Q: How do you scale?  A: Offload optimization to workers, cache pairwise distances, OSRM caching, add pagination/virtualization.
-6) Q: Security?  A: JWT auth, user scoping on all data operations, bcrypt password hashing.
-7) Q: Why Tailwind?  A: Rapid, consistent styling; easy dark mode; utility-first for maintainability.
-8) Q: Tradeoffs of OSRM vs Google Directions?  A: OSRM is free/open but needs hosting; Google is paid with reliable data and SLAs.
-9) Q: What’s your error-handling strategy?  A: Toastify for UI feedback; server returns meaningful messages; frontend surfaces server msg; log errors on server.
-10) Q: How would you add time windows?  A: Extend the model with time windows and service times; adapt algorithm to VRPTW heuristics.
-
-## 16. End-to-End Flow Summary
-- User logs in → token stored; preferences fetched (theme/default algorithm/road routing).
-- User adds vehicles/locations → sees markers on map.
-- User creates optimization → selects vehicles and locations → picks algorithm → runs.
-- Server computes routes → stores and returns optimization.
-- Detail view shows routes on map with colored lines and markers → user can toggle real road routing.
-- User exports JSON or deletes a run.
-
-## 17. Tips for Demo/Presentation
-- Start with the problem and the business impact (fuel/time savings).
-- Show a quick run: create vehicles/locations → optimize → map visualization.
-- Toggle road network to highlight realistic routing.
-- Open Settings to show personalization and defaults.
-- Mention tradeoffs and future improvements.
-
----
-Prepared by: You
+Prepared by: Devraj Parmar 
 Version: Latest
