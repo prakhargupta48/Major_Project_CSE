@@ -120,7 +120,41 @@ Users → Locations → Vehicles → Optimizations → Routes
 - **OSRM** - Open Source Routing Machine for route calculations
 - **CartoDB** - Dark theme map tiles
 
+### Constraint Handling
+- **Vehicle Capacities**  
+  Max load per vehicle; routes exceeding capacity are invalid.
+- **Variable Demand per Location**  
+  Each stop has its own demand (packages/weight) that must fit vehicle capacity.
+- **Single Source – Multiple Destinations**  
+  All routes start/end at one or more depots.
+- **Heterogeneous Fleets**  
+  Mixed vehicle types (vans, trucks, bikes) with varying capacity, speed, cost.
+
 ---
+
+
+### Route Optimization Algorithms
+- **Clarke–Wright Savings** (fast initial heuristic)  
+- **Exact Solver** (branch-and-bound for small instances)  
+- **Genetic Algorithm** (evolutionary improvement)  
+- **Tabu Search** (local search with memory)  
+- **Ant Colony Optimization** (stochastic path construction)
+---
+
+### Technology Stack
+
+| Layer        | Technologies                           |
+|--------------|----------------------------------------|
+| Frontend     | React.js, Tailwind CSS, Leaflet.js     |
+| Backend      | Node.js, Express, Mongoose             |
+| Database     | MongoDB                                |
+| Optimization | Python (SciPy), JS meta-heuristics     |
+| DevOps       | Netlify, Render                        |
+| Security     | JWT, bcrypt, helmet, rate-limit        |
+| Testing      | Jest, React Testing Library, Supertest |
+
+---
+
 
 ## 🚀 **Quick Start**
 
