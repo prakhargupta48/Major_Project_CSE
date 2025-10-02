@@ -1,0 +1,353 @@
+
+.navbar {
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .navbar {
+  background-color: rgba(15, 23, 42, 0.8);
+}
+
+.navbar.scrolled {
+  padding: 0.75rem 0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+.dark .navbar.scrolled {
+  background-color: rgba(15, 23, 42, 0.95);
+}
+
+.navbar .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #1e293b;
+  font-weight: 800;
+  font-size: 1.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .navbar-brand {
+  color: #f1f5f9;
+}
+
+.navbar-brand:hover {
+  transform: translateY(-1px);
+}
+
+.brand-text {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 900;
+}
+
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.navbar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  text-decoration: none;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  white-space: nowrap;
+}
+
+.dark .navbar-link {
+  color: #94a3b8;
+}
+
+.navbar-link:hover {
+  color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.1);
+  transform: translateY(-1px);
+}
+
+.dark .navbar-link:hover {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+.navbar-link.active {
+  color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.15);
+  font-weight: 700;
+}
+
+.dark .navbar-link.active {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+.nav-icon {
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+.nav-label {
+  font-size: 0.9rem;
+}
+
+.active-indicator {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border-radius: 2px;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 20px;
+    opacity: 1;
+  }
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.user-info:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.dark .user-info:hover {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+.user-name {
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+.dark .user-name {
+  color: #f1f5f9;
+}
+
+.navbar-mobile-toggle {
+  display: none;
+  font-size: 1.5rem;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.dark .navbar-mobile-toggle {
+  color: #94a3b8;
+}
+
+.navbar-mobile-toggle:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.dark .navbar-mobile-toggle:hover {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+/* Mobile Responsive */
+@media (max-width: 1024px) {
+  .navbar-mobile-toggle {
+    display: block;
+  }
+
+  .navbar-menu {
+    position: fixed;
+    top: 80px;
+    left: 0;
+    right: 0;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .dark .navbar-menu {
+    background-color: rgba(15, 23, 42, 0.95);
+    border-top-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .navbar-menu.open {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .navbar-links {
+    flex-direction: column;
+    width: 100%;
+    margin: 0;
+    gap: 0.25rem;
+  }
+
+  .navbar-link {
+    padding: 1rem;
+    width: 100%;
+    border-radius: 12px;
+    justify-content: flex-start;
+    border: 1px solid transparent;
+  }
+
+  .navbar-link:hover {
+    border-color: rgba(59, 130, 246, 0.2);
+  }
+
+  .navbar-link.active {
+    border-color: #3b82f6;
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+
+  .active-indicator {
+    display: none;
+  }
+
+  .navbar-user {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .dark .navbar-user {
+    border-top-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .user-info {
+    justify-content: center;
+    padding: 1rem;
+    background-color: rgba(59, 130, 246, 0.05);
+    border-radius: 12px;
+  }
+
+  .dark .user-info {
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+}
+
+@media (max-width: 640px) {
+  .navbar .container {
+    padding: 0 1rem;
+  }
+
+  .navbar-brand {
+    font-size: 1.5rem;
+  }
+
+  .navbar-menu {
+    padding: 1rem;
+  }
+
+  .navbar-link {
+    padding: 0.875rem;
+  }
+}
+
+/* Animations */
+.anim-fade-up {
+  animation: fadeUp 0.6s ease both;
+}
+
+@keyframes fadeUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(12px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+/* Smooth transitions for all interactive elements */
+.navbar * {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover effects for buttons */
+.navbar .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+/* Focus states for accessibility */
+.navbar-link:focus,
+.navbar-mobile-toggle:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Loading animation for theme toggle */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}

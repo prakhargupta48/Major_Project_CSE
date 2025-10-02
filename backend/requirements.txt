@@ -1,0 +1,5 @@
+fastapi==0.103.1
+uvicorn[standard]==0.23.2
+python-dotenv==1.0.0
+ortools
+openrouteservice==2.3.0

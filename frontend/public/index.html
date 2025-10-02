@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    
+    <!-- Primary Meta Tags -->
+    <title>RouteOptimizer - AI-Powered Route Optimization Platform</title>
+    <meta name="title" content="RouteOptimizer - AI-Powered Route Optimization Platform" />
+    <meta name="description" content="Transform your logistics with intelligent route optimization. Save time, reduce costs, and deliver more efficiently with our AI-powered platform. Perfect for fleet management, delivery services, and field operations." />
+    <meta name="keywords" content="route optimization, fleet management, delivery optimization, logistics software, AI routing, vehicle routing, supply chain optimization" />
+    <meta name="author" content="RouteOptimizer" />
+    <meta name="robots" content="index, follow" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://routeoptimizer.com/" />
+    <meta property="og:title" content="RouteOptimizer - Complex Route Optimization Platform" />
+    <meta property="og:description" content="Transform your logistics with intelligent route optimization. Save time, reduce costs, and deliver more efficiently." />
+    <meta property="og:image" content="%PUBLIC_URL%/og-image.png" />
+    <meta property="og:site_name" content="RouteOptimizer" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://routeoptimizer.com/" />
+    <meta property="twitter:title" content="RouteOptimizer - AI-Powered Route Optimization Platform" />
+    <meta property="twitter:description" content="Transform your logistics with intelligent route optimization. Save time, reduce costs, and deliver more efficiently." />
+    <meta property="twitter:image" content="%PUBLIC_URL%/og-image.png" />
+    
+    <!-- Favicon and App Icons -->
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="%PUBLIC_URL%/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="%PUBLIC_URL%/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/apple-touch-icon.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    
+    <!-- Theme and Colors -->
+    <meta name="theme-color" content="#3b82f6" />
+    <meta name="msapplication-TileColor" content="#3b82f6" />
+    <meta name="msapplication-config" content="%PUBLIC_URL%/browserconfig.xml" />
+    
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    
+    <!-- Preload critical fonts -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" as="style" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" />
+    
+    <!-- Preload critical CSS -->
+    <link rel="preload" href="%PUBLIC_URL%/static/css/main.css" as="style" />
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    
+    <!-- Performance and PWA -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="RouteOptimizer" />
+    
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "RouteOptimizer",
+      "description": "AI-powered route optimization platform for fleet management and logistics",
+      "url": "https://routeoptimizer.com",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "RouteOptimizer"
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <noscript>
+      <div style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        text-align: center;
+        padding: 2rem;
+      ">
+        <div>
+          <h1 style="font-size: 2rem; margin-bottom: 1rem;">JavaScript Required</h1>
+          <p style="font-size: 1.1rem; opacity: 0.9;">
+            RouteOptimizer requires JavaScript to function properly. Please enable JavaScript in your browser to continue.
+          </p>
+        </div>
+      </div>
+    </noscript>
+    
+    <div id="root"></div>
+    
+    <!-- Performance monitoring -->
+    <script>
+      // Performance monitoring
+      if ('performance' in window) {
+        window.addEventListener('load', () => {
+          setTimeout(() => {
+            const perfData = performance.getEntriesByType('navigation')[0];
+            if (perfData) {
+              console.log('Page Load Time:', perfData.loadEventEnd - perfData.loadEventStart, 'ms');
+            }
+          }, 0);
+        });
+      }
+      
+      // Service Worker registration for PWA
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>
